@@ -114,6 +114,9 @@
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
     th { background: #f8fafc; padding: 12px 16px; font-weight: 600; color: #475569; border-bottom: 1px solid var(--border); white-space: nowrap; }
     td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: #1e293b; vertical-align: middle; }
+    .col-nowrap { white-space: nowrap; }
+    .col-badges { white-space: nowrap; }
+    .date-cell { color: var(--text-muted); font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background-color: #f8fafc; }
     
@@ -127,7 +130,6 @@
     .badge-large { background: #fee2e2; color: #991b1b; margin-left: 4px; }
     .badge-new { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; margin-right: 4px; font-weight: 800; }
     .area-cell { font-weight: 700; font-variant-numeric: tabular-nums; }
-    .date-cell { color: var(--text-muted); font-size: 12.5px; }
 
     /* Naver Map Button */
     .loc-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -160,8 +162,10 @@
       h1 { font-size: 20px; }
       .controls-card { flex-direction: column; align-items: stretch; }
       .search-group { max-width: 100%; }
-      table { font-size: 12.5px; }
-      th, td { padding: 10px 12px; }
+      table { font-size: 12px; }
+      th, td { padding: 10px 8px; }
+      .badge { padding: 2px 6px; font-size: 10.5px; }
+      .loc-wrapper { gap: 6px; }
       .new-banner { flex-direction: column; align-items: flex-start; gap: 6px; }
     }
   </style>
@@ -1446,16 +1450,16 @@
         const hasMemo = Boolean((memos[getItemKey(item)] || '').trim());
         return `
         <tr class="${item.isNew ? 'row-new' : ''}" onclick="openDetail(${idx})">
-          <td>
+          <td class="col-badges">
             ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
             <span class="badge ${item.type === '허가' ? 'badge-pms' : 'badge-stc'}">${item.type}</span>
             ${item.isLarge ? '<span class="badge badge-large">대형</span>' : ''}
-            ${hasMemo ? '<span class="badge badge-memo">📝 메모</span>' : ''}
+            ${hasMemo ? '<span class="badge badge-memo">📝</span>' : ''}
           </td>
-          <td><strong>${item.sigungu}</strong></td>
+          <td class="col-nowrap"><strong>${item.sigungu}</strong></td>
           <td>
             <div class="loc-wrapper">
-              <span class="loc-link">${item.loc}</span>
+              <span class="loc-link">${item.loc.replace('부산광역시 ', '')}</span>
               <a href="${fallbackUrl}" 
                  onclick="event.stopPropagation(); openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
                  target="_blank" rel="noopener noreferrer" 

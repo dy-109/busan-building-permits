@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>부산광역시 건축허가·착공 모니터링 대시보드</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --border: #e2e8f0;
+      --tag-pms: #3b82f6;
+      --tag-stc: #10b981;
+      --tag-large: #ef4444;
+      --tag-new: #f97316;
+      --naver-green: #03C75A;
+      --naver-hover: #02b351;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); padding: 20px; line-height: 1.5; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+    h1 { font-size: 24px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+    .last-updated { font-size: 13px; color: var(--text-muted); background: #e2e8f0; padding: 4px 10px; border-radius: 20px; }
+    
+    /* New Banner */
+    .new-banner {
+      background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2);
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+    .new-banner-chip {
+      background: rgba(255, 255, 255, 0.25);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    /* KPI Cards */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card { background: var(--card-bg); padding: 18px 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .kpi-title { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
+    .kpi-value { font-size: 26px; font-weight: 800; color: var(--text-main); }
+    .kpi-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .kpi-card.new { border-left: 4px solid var(--tag-new); }
+    .kpi-card.highlight { border-left: 4px solid var(--primary); }
+    .kpi-card.stc { border-left: 4px solid var(--tag-stc); }
+    .kpi-card.pms { border-left: 4px solid var(--tag-pms); }
+
+    /* Controls: Filters & Search */
+    .controls-card { background: var(--card-bg); padding: 16px 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+    .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tab-btn { background: #f1f5f9; border: 1px solid var(--border); padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .tab-btn.tab-new.active { background: #ea580c; border-color: #ea580c; }
+    
+    .search-group { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; max-width: 480px; justify-content: flex-end; }
+    .search-input, .select-input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; }
+    .search-input:focus, .select-input:focus { border-color: var(--primary); }
+    .search-input { flex: 1; min-width: 180px; }
+
+    /* Table Container */
+    .table-container { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
+    th { background: #f8fafc; padding: 12px 16px; font-weight: 600; color: #475569; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: #1e293b; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background-color: #f8fafc; }
+    
+    tr.row-new { background-color: #fffaf5; }
+    tr.row-new:hover td { background-color: #fff1e6; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+    .badge-pms { background: #dbeafe; color: #1e40af; }
+    .badge-stc { background: #d1fae5; color: #065f46; }
+    .badge-large { background: #fee2e2; color: #991b1b; margin-left: 4px; }
+    .badge-new { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; margin-right: 4px; font-weight: 800; }
+    .area-cell { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .date-cell { color: var(--text-muted); font-size: 12.5px; }
+
+    /* Naver Map Button */
+    .loc-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .loc-text { font-weight: 700; }
+    .naver-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--naver-green);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 1px 2px rgba(3,199,90,0.25);
+    }
+    .naver-btn:hover {
+      background: var(--naver-hover);
+      transform: translateY(-1px);
+    }
+    .naver-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+
+    @media (max-width: 768px) {
+      body { padding: 12px; }
+      h1 { font-size: 20px; }
+      .controls-card { flex-direction: column; align-items: stretch; }
+      .search-group { max-width: 100%; }
+      table { font-size: 12.5px; }
+      th, td { padding: 10px 12px; }
+      .new-banner { flex-direction: column; align-items: flex-start; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>🏗️ 부산광역시 건축허가·착공 모니터링</h1>
+        <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">세움터 실시간 연동 · 신규 등록 최상단 우선 정렬 · 네이버 지도 길찾기 연동</p>
+      </div>
+      <div class="last-updated">
+        기준: 2026.11.01 ~ 11.23 (매일 아침 08:30 갱신)
+      </div>
+    </header>
+
+    <!-- New Items Banner -->
+    <div class="new-banner" id="new-items-banner">
+      <div>🔥 <strong>최신 신규 등록 현장 1건</strong>이 최상단에 우선 배치되었습니다.</div>
+      <div class="new-banner-chip">사상구 학장동(공장 1,467.2㎡) 1건 신규 반영</div>
+    </div>
+
+    <!-- KPI Summary Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card new">
+        <div class="kpi-title">신규 등록 건수 (NEW)</div>
+        <div class="kpi-value" style="color: #ea580c;" id="kpi-new-count">1건</div>
+        <div class="kpi-desc">직전 점검 이후 신규 전산 등재 건</div>
+      </div>
+      <div class="kpi-card pms">
+        <div class="kpi-title">11월 누적 건축허가</div>
+        <div class="kpi-value" id="kpi-pms-count">36건</div>
+        <div class="kpi-desc">대형 13건 · 소규모 23건</div>
+      </div>
+      <div class="kpi-card stc">
+        <div class="kpi-title">11월 누적 착공</div>
+        <div class="kpi-value" id="kpi-stc-count">17건</div>
+        <div class="kpi-desc">대형 3건 · 중동·부전동·재송동 등</div>
+      </div>
+      <div class="kpi-card highlight">
+        <div class="kpi-title">대형 프로젝트 (1,000㎡ 이상)</div>
+        <div class="kpi-value" id="kpi-large-count">16건</div>
+        <div class="kpi-desc">MS데이터센터(6.9만㎡), 중동(1,938㎡) 등</div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="controls-card">
+      <div class="filter-tabs" id="tab-group">
+        <button class="tab-btn active" data-filter="all">전체 (53건)</button>
+        <button class="tab-btn tab-new" data-filter="new" style="color: #ea580c;">🔥 신규 등록 (1건)</button>
+        <button class="tab-btn" data-filter="pms">건축허가 (36건)</button>
+        <button class="tab-btn" data-filter="stc">착공 (17건)</button>
+        <button class="tab-btn" data-filter="large">대형 1,000㎡ 이상 (16건)</button>
+        <button class="tab-btn" data-filter="small">소규모 1,000㎡ 미만 (37건)</button>
+      </div>
+      <div class="search-group">
+        <select class="select-input" id="sigungu-select">
+          <option value="">부산 전체 (16개 구·군)</option>
+          <option value="강서구">강서구</option>
+          <option value="금정구">금정구</option>
+          <option value="기장군">기장군</option>
+          <option value="남구">남구</option>
+          <option value="동구">동구</option>
+          <option value="동래구">동래구</option>
+          <option value="부산진구">부산진구</option>
+          <option value="북구">북구</option>
+          <option value="사상구">사상구</option>
+          <option value="사하구">사하구</option>
+          <option value="서구">서구</option>
+          <option value="수영구">수영구</option>
+          <option value="연제구">연제구</option>
+          <option value="영도구">영도구</option>
+          <option value="중구">중구</option>
+          <option value="해운대구">해운대구</option>
+        </select>
+        <input type="text" class="search-input" id="search-input" placeholder="지번, 용도, 건물명 검색...">
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+      <table id="data-table">
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>구·군</th>
+            <th>상세 위치 (지번 / 명칭 / 네이버 길찾기)</th>
+            <th>주용도</th>
+            <th>연면적 (㎡)</th>
+            <th>규모 (층수/구조)</th>
+            <th>허가·착공일</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <!-- Rows injected by JS -->
+        </tbody>
+      </table>
+      <div id="empty-state" class="empty-state" style="display: none;">
+        조건에 일치하는 건축허가 및 착공 내역이 없습니다.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DATA = [
+      {
+            "type": "착공",
+            "sigungu": "사상구",
+            "loc": "부산광역시 사상구 학장동 278-14",
+            "bldNm": "학장동 278-14 공장 신축(착공예정)",
+            "pmsno": "2026-건축과-신축허가-12",
+            "date": "2026-11-23",
+            "purps": "공장(사무실)",
+            "area": 1467.2,
+            "floors": "",
+            "strct": "",
+            "isLarge": true,
+            "lat": 35.1451257374379,
+            "lng": 128.991045871006,
+            "isNew": true
+      },
+      {
+            "type": "착공",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 정관읍 임곡리 86-4",
+            "bldNm": "정관읍 임곡리 신축착공(소매점·사무소)",
+            "pmsno": "2026-건축과-신축허가-32",
+            "date": "2026-11-20",
+            "purps": "제1종근린생활시설(소매점·사무소)",
+            "area": 302.52,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.3535115745749,
+            "lng": 129.136203309893,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 일광읍 횡계리 44-5",
+            "bldNm": "일광읍 횡계리 신축신고(휴게음식점)",
+            "pmsno": "2026-건축과-신축신고-48",
+            "date": "2026-11-20",
+            "purps": "제1종근린생활시설(휴게음식점)",
+            "area": 97.92,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.2720723246856,
+            "lng": 129.229416502359,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 일광읍 횡계리 산 37",
+            "bldNm": "일광읍 횡계리 신축신고(휴게음식점)",
+            "pmsno": "2026-건축과-신축신고-46",
+            "date": "2026-11-20",
+            "purps": "제1종근린생활시설(휴게음식점)",
+            "area": 97.92,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.2718519517059,
+            "lng": 129.229766252869,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 일광읍 횡계리 44-1",
+            "bldNm": "일광읍 횡계리 신축신고(휴게음식점)",
+            "pmsno": "2026-건축과-신축신고-47",
+            "date": "2026-11-20",
+            "purps": "제1종근린생활시설(휴게음식점)",
+            "area": 97.18,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.2718521369589,
+            "lng": 129.229042588124,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "연제구",
+            "loc": "부산광역시 연제구 거제동 121-14",
+            "bldNm": "거제동 신축허가(일반음식점)",
+            "pmsno": "2026-건축과-신축허가-7",
+            "date": "2026-11-19",
+            "purps": "제2종근린생활시설(일반음식점)",
+            "area": 2440.27,
+            "floors": "",
+            "strct": "",
+            "isLarge": true,
+            "lat": 35.1970309633464,
+            "lng": 129.079124947827,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "영도구",
+            "loc": "부산광역시 영도구 청학동 217-82",
+            "bldNm": "청학동 신축허가(제2종근린생활시설)",
+            "pmsno": "2026-건축과-신축허가-12",
+            "date": "2026-11-18",
+            "purps": "제2종근린생활시설(소매점·의원·일반음식점·사무소)",
+            "area": 1445.01,
+            "floors": "",
+            "strct": "",
+            "isLarge": true,
+            "lat": 35.0970563760564,
+            "lng": 129.062458771395,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "사상구",
+            "loc": "부산광역시 사상구 학장동 722-5",
+            "bldNm": "학장동 신축허가 착공예정(공장)",
+            "pmsno": "2026-건축과-신축허가-19",
+            "date": "2026-11-18",
+            "purps": "공장",
+            "area": 782.65,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.147248226913,
+            "lng": 128.97687069764,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 명지동 3693-1",
+            "bldNm": "명지동 신축허가(단독·다가구·일반음식점)",
+            "pmsno": "2026-건축과-신축허가-78",
+            "date": "2026-11-18",
+            "purps": "단독주택(다가구주택)·제2종근린생활시설(일반음식점)",
+            "area": 384.67,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.1322803279821,
+            "lng": 128.913469897487,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "수영구",
+            "loc": "부산광역시 수영구 민락동 173-1",
+            "bldNm": "민락동 신축허가(제2종근린생활시설)",
+            "pmsno": "2026-건축과-신축허가-24",
+            "date": "2026-11-18",
+            "purps": "제2종근린생활시설",
+            "area": 199.5,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.156992779676,
+            "lng": 129.122100947494,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "서구",
+            "loc": "부산광역시 서구 서대신동3가 3-163",
+            "bldNm": "서대신동3가 신축허가(단독주택·근생)",
+            "pmsno": "2026-건축과-신축허가-9",
+            "date": "2026-11-17",
+            "purps": "단독주택(다가구주택·제2종근린생활시설 사무소)",
+            "area": 431.44,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.1283940290592,
+            "lng": 129.007738403723,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "사상구",
+            "loc": "부산광역시 사상구 삼락동 117-5",
+            "bldNm": "삼락동 신축신고(공장)",
+            "pmsno": "2026-건축과-신축신고-13",
+            "date": "2026-11-17",
+            "purps": "공장",
+            "area": 304.86,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.1888914720138,
+            "lng": 128.980566447494,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 명지동 3591-1",
+            "bldNm": "명지동 신축허가(근생·업무·운동시설)",
+            "pmsno": "2026-건축과-신축허가-13",
+            "date": "2026-11-16",
+            "purps": "제2종근린생활시설(휴게음식점)·업무시설(사무소)·운동시설(놀이형 시설)",
+            "area": 9894.26,
+            "floors": "",
+            "strct": "",
+            "isLarge": true,
+            "lat": 35.0915400027392,
+            "lng": 128.901190022292,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 정관읍 예림리 578-1",
+            "bldNm": "정관읍 예림리 신축허가(사무소)",
+            "pmsno": "2026-건축과-신축허가-54",
+            "date": "2026-11-16",
+            "purps": "제2종근린생활시설(사무소)",
+            "area": 381.74,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.3276479736522,
+            "lng": 129.207340156113,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "북구",
+            "loc": "부산광역시 북구 만덕동 430",
+            "bldNm": "만덕동 신축허가(일반음식점)",
+            "pmsno": "2026-건축과-신축허가-5",
+            "date": "2026-11-16",
+            "purps": "제2종근린생활시설(일반음식점)",
+            "area": 331.9,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.213558059313,
+            "lng": 129.041924042456,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "사하구",
+            "loc": "부산광역시 사하구 구평동 481",
+            "bldNm": "구평동 신축공장",
+            "pmsno": "2026-건축과-신축허가-9",
+            "date": "2026-11-12",
+            "purps": "공장",
+            "area": 245.89,
+            "floors": "지상2층",
+            "strct": "철근콘크리트구조",
+            "isLarge": false,
+            "lat": 35.0535159981555,
+            "lng": 128.995569033113,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "해운대구",
+            "loc": "부산광역시 해운대구 재송동 119-12",
+            "bldNm": "재송동 창고시설",
+            "pmsno": "2026-건축과-신축신고-5",
+            "date": "2026-11-12",
+            "purps": "창고시설",
+            "area": 88.92,
+            "floors": "지상1층",
+            "strct": "경량철골구조",
+            "isLarge": false,
+            "lat": 35.1835055234877,
+            "lng": 129.127924723238,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 장안읍 반룡리 965-2",
+            "bldNm": "반룡리 신축공장",
+            "pmsno": "2026-건축과-신축허가-52",
+            "date": "2026-11-11",
+            "purps": "공장",
+            "area": 6715.2,
+            "floors": "지상4층",
+            "strct": "일반철골구조",
+            "isLarge": true,
+            "lat": 35.3243152141714,
+            "lng": 129.254198848938,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 명지동 3733-11",
+            "bldNm": "(주)디앤비 신축공장",
+            "pmsno": "2026-건축과-신축허가-76",
+            "date": "2026-11-11",
+            "purps": "공장",
+            "area": 6116.64,
+            "floors": "지상4층",
+            "strct": "일반철골구조",
+            "isLarge": true,
+            "lat": 35.1244657364044,
+            "lng": 128.909315875964,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 장안읍 임랑리 400",
+            "bldNm": "창성피엠씨 장안공장",
+            "pmsno": "2026-건축과-신축허가-53",
+            "date": "2026-11-11",
+            "purps": "공장",
+            "area": 1480.78,
+            "floors": "지상3층",
+            "strct": "일반철골구조",
+            "isLarge": true,
+            "lat": 35.3234444519713,
+            "lng": 129.25362536031,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "금정구",
+            "loc": "부산광역시 금정구 두구동 1220-3",
+            "bldNm": "홍법사 근린생활시설(종교집회장)",
+            "pmsno": "2026-건축과-신축허가-20",
+            "date": "2026-11-11",
+            "purps": "제2종근린생활시설",
+            "area": 298.26,
+            "floors": "지상2층",
+            "strct": "철근콘크리트구조",
+            "isLarge": false,
+            "lat": 35.3036138841966,
+            "lng": 129.11106553614,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "해운대구",
+            "loc": "부산광역시 해운대구 중동 623-1",
+            "bldNm": "중동 제2종근린생활시설",
+            "pmsno": "2026-건축과-신축허가-10",
+            "date": "2026-11-10",
+            "purps": "제2종근린생활시설",
+            "area": 1938.12,
+            "floors": "지상3층/지하2층",
+            "strct": "일반철골구조",
+            "isLarge": true,
+            "lat": 35.1606477437811,
+            "lng": 129.188992400386,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "금정구",
+            "loc": "부산광역시 금정구 구서동 637-8",
+            "bldNm": "구서동 근린생활시설",
+            "pmsno": "2026-건축과-신축허가-22",
+            "date": "2026-11-10",
+            "purps": "제1종근린생활시설",
+            "area": 306.54,
+            "floors": "지상1층",
+            "strct": "철근콘크리트구조",
+            "isLarge": false,
+            "lat": 35.2594289659279,
+            "lng": 129.087459908189,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 대저2동 1487",
+            "bldNm": "대저2동 창고",
+            "pmsno": "2026-건축과-신축허가-70",
+            "date": "2026-11-10",
+            "purps": "창고시설",
+            "area": 199.98,
+            "floors": "지상1층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.1842707758866,
+            "lng": 128.956864717844,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "금정구",
+            "loc": "부산광역시 금정구 선동 538",
+            "bldNm": "선동 538 소매점",
+            "pmsno": "2026-건축과-신축허가-26",
+            "date": "2026-11-10",
+            "purps": "제1종근린생활시설",
+            "area": 199.9,
+            "floors": "지상1층",
+            "strct": "한옥목구조",
+            "isLarge": false,
+            "lat": 35.2762415200062,
+            "lng": 129.111639745169,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "해운대구",
+            "loc": "부산광역시 해운대구 재송동 119-12",
+            "bldNm": "재송동 창고시설",
+            "pmsno": "2026-건축과-신축신고-5",
+            "date": "2026-11-10",
+            "purps": "창고시설",
+            "area": 88.92,
+            "floors": "지상1층",
+            "strct": "경량철골구조",
+            "isLarge": false,
+            "lat": 35.1835055234877,
+            "lng": 129.127924723238,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 지사동 226-2",
+            "bldNm": "근린생활시설",
+            "pmsno": "2026-건축과-신축신고-15",
+            "date": "2026-11-10",
+            "purps": "제2종근린생활시설",
+            "area": 82.95,
+            "floors": "지상2층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.152963307509,
+            "lng": 128.836394905032,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "동구",
+            "loc": "부산광역시 동구 좌천동 837-13",
+            "bldNm": "좌천동 다가구주택",
+            "pmsno": "2026-건축과-신축허가-6",
+            "date": "2026-11-09",
+            "purps": "단독주택",
+            "area": 228.53,
+            "floors": "지상3층",
+            "strct": "철근콘크리트구조",
+            "isLarge": false,
+            "lat": 35.1329849319725,
+            "lng": 129.048559049834,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "부산진구",
+            "loc": "부산광역시 부산진구 범천동 841-308",
+            "bldNm": "범천동 근린생활시설",
+            "pmsno": "2026-건축과-신축허가-8",
+            "date": "2026-11-09",
+            "purps": "제1종근린생활시설",
+            "area": 132.87,
+            "floors": "지상1층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.1428905174175,
+            "lng": 129.06273931665,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 죽동동 475-2",
+            "bldNm": "근린생활시설",
+            "pmsno": "2026-건축과-신축신고-9",
+            "date": "2026-11-09",
+            "purps": "제2종근린생활시설",
+            "area": 66.12,
+            "floors": "지상1층",
+            "strct": "경량철골구조",
+            "isLarge": false,
+            "lat": 35.1986406543978,
+            "lng": 128.893135456952,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "중구",
+            "loc": "부산광역시 중구 동광동5가 16-32",
+            "bldNm": "근린생활시설",
+            "pmsno": "2026-재생건축과-신축신고-1",
+            "date": "2026-11-09",
+            "purps": "제1종근린생활시설",
+            "area": 58.14,
+            "floors": "지상2층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.1077851974251,
+            "lng": 129.033345836311,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 정관읍 용수리 423-6",
+            "bldNm": "근린생활시설",
+            "pmsno": "2026-건축과-신축신고-42",
+            "date": "2026-11-08",
+            "purps": "제1종근린생활시설",
+            "area": 18.0,
+            "floors": "지상1층",
+            "strct": "스틸하우스조",
+            "isLarge": false,
+            "lat": 35.3379687866321,
+            "lng": 129.173942541379,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "부산진구",
+            "loc": "부산광역시 부산진구 부전동 263-11",
+            "bldNm": "부전동 자동차관련시설",
+            "pmsno": "2025-건축과-신축허가-3",
+            "date": "2026-11-06",
+            "purps": "자동차관련시설",
+            "area": 3161.9,
+            "floors": "지상3층",
+            "strct": "일반철골구조",
+            "isLarge": true,
+            "lat": 35.1598373085433,
+            "lng": 129.059060146415,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 지사동 명동지구 I2 1",
+            "bldNm": "(주)린우드 명동지구 공장",
+            "pmsno": "2026-건축과-신축허가-12",
+            "date": "2026-11-05",
+            "purps": "공장",
+            "area": 20517.73,
+            "floors": "지상1층",
+            "strct": "일반철골구조",
+            "isLarge": true,
+            "lat": 35.1795543,
+            "lng": 129.0756416,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 기장읍 죽성리 728",
+            "bldNm": "단독주택",
+            "pmsno": "2026-건축과-신축신고-41",
+            "date": "2026-11-05",
+            "purps": "단독주택",
+            "area": 79.56,
+            "floors": "지상1층",
+            "strct": "일반목구조",
+            "isLarge": false,
+            "lat": 35.2459347135833,
+            "lng": 129.241545167961,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "해운대구",
+            "loc": "부산광역시 해운대구 우동 1391",
+            "bldNm": "우동 대형 운동시설",
+            "pmsno": "2026-건축과-신축허가-15",
+            "date": "2026-11-04",
+            "purps": "제2종근린생활시설",
+            "area": 64710.52,
+            "floors": "지상2층",
+            "strct": "일반철골구조",
+            "isLarge": true,
+            "lat": 35.1601370881761,
+            "lng": 129.137149944238,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "서구",
+            "loc": "부산광역시 서구 토성동5가 45-1",
+            "bldNm": "토성동 업무시설",
+            "pmsno": "2026-건축과-신축허가-8",
+            "date": "2026-11-04",
+            "purps": "업무시설",
+            "area": 4207.35,
+            "floors": "지상13층/지하1층",
+            "strct": "철근콘크리트구조",
+            "isLarge": true,
+            "lat": 35.0968288223812,
+            "lng": 129.021595821123,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 기장읍 신천리 248-1",
+            "bldNm": "기장하수처리장",
+            "pmsno": "2026-건축과-협의건축물-6",
+            "date": "2026-11-04",
+            "purps": "자원순환관련시설",
+            "area": 3156.02,
+            "floors": "지상1층",
+            "strct": "철근콘크리트구조",
+            "isLarge": true,
+            "lat": 35.2451381231854,
+            "lng": 129.223337710564,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "영도구",
+            "loc": "부산광역시 영도구 청학동 1-46",
+            "bldNm": "청학동 공장 (가필지)",
+            "pmsno": "2026-건축과-신축허가-11",
+            "date": "2026-11-04",
+            "purps": "공장",
+            "area": 833.04,
+            "floors": "지상2층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.0915314064505,
+            "lng": 129.069563475749,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "서구",
+            "loc": "부산광역시 서구 동대신동3가 77-124",
+            "bldNm": "단독주택",
+            "pmsno": "2026-건축과-신축허가-7",
+            "date": "2026-11-04",
+            "purps": "단독주택",
+            "area": 396.8,
+            "floors": "지상5층/지하1층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.1166655801016,
+            "lng": 129.019602952504,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "영도구",
+            "loc": "부산광역시 영도구 청학동 1-46",
+            "bldNm": "청학동 공장 (나필지)",
+            "pmsno": "2026-건축과-신축신고-5",
+            "date": "2026-11-04",
+            "purps": "공장",
+            "area": 255.2,
+            "floors": "지상2층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.0915314064505,
+            "lng": 129.069563475749,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 명지동 3483-5",
+            "bldNm": "공용 공중화장실",
+            "pmsno": "2026-건축과-공용건축물-2",
+            "date": "2026-11-04",
+            "purps": "제1종근린생활시설",
+            "area": 23.78,
+            "floors": "지상1층",
+            "strct": "경량철골구조",
+            "isLarge": false,
+            "lat": 35.1075095303429,
+            "lng": 128.922025607388,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 구랑동 1278-3",
+            "bldNm": "PUS09 MS 데이터센터",
+            "pmsno": "2026-건축과-신축허가-11",
+            "date": "2026-11-03",
+            "purps": "방송통신시설",
+            "area": 69439.06,
+            "floors": "지상3층",
+            "strct": "일반철골구조",
+            "isLarge": true,
+            "lat": 35.1227877218981,
+            "lng": 128.855159681966,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "금정구",
+            "loc": "부산광역시 금정구 구서동 167-1",
+            "bldNm": "구서4구역재건축정비사업",
+            "pmsno": "2026-금정구-재건축협의(주택건설사업계획승인)-1",
+            "date": "2026-11-03",
+            "purps": "제2종근린생활시설",
+            "area": 51482.91,
+            "floors": "지상1층/지하1층",
+            "strct": "철근콘크리트구조",
+            "isLarge": true,
+            "lat": 35.257870158084,
+            "lng": 129.08960018237,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "사하구",
+            "loc": "부산광역시 사하구 장림동 1144-15",
+            "bldNm": "장림동 공용건축물",
+            "pmsno": "2026-건축과-공용건축물-13",
+            "date": "2026-11-03",
+            "purps": "제1종근린생활시설",
+            "area": 1492.32,
+            "floors": "지상3층",
+            "strct": "철근콘크리트구조",
+            "isLarge": true,
+            "lat": 35.0815741660902,
+            "lng": 128.960921290516,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 봉림동 63-4",
+            "bldNm": "근린생활시설",
+            "pmsno": "2026-건축과-신축허가-74",
+            "date": "2026-11-03",
+            "purps": "제2종근린생활시설",
+            "area": 938.5,
+            "floors": "지상3층",
+            "strct": "철근콘크리트구조",
+            "isLarge": false,
+            "lat": 35.1775633610706,
+            "lng": 128.901510413072,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 대저2동 2641",
+            "bldNm": "제2종근린생활시설",
+            "pmsno": "2026-건축과-신축허가-75",
+            "date": "2026-11-03",
+            "purps": "제2종근린생활시설",
+            "area": 230.0,
+            "floors": "지상1층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.1721054805614,
+            "lng": 128.957607050664,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "동래구",
+            "loc": "부산광역시 동래구 안락동 462-85",
+            "bldNm": "창고시설",
+            "pmsno": "2026-건축과-신축허가-16",
+            "date": "2026-11-03",
+            "purps": "창고시설",
+            "area": 198.03,
+            "floors": "지상1층",
+            "strct": "경량철골구조",
+            "isLarge": false,
+            "lat": 35.196968277402,
+            "lng": 129.109301704167,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "해운대구",
+            "loc": "부산광역시 해운대구 우동 675-7",
+            "bldNm": "우동 근린생활시설",
+            "pmsno": "2026-건축과-신축허가-7",
+            "date": "2026-11-02",
+            "purps": "제2종근린생활시설",
+            "area": 736.4,
+            "floors": "지상6층",
+            "strct": "철근콘크리트구조",
+            "isLarge": false,
+            "lat": 35.1624332748962,
+            "lng": 129.156006333044,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "부산진구",
+            "loc": "부산광역시 부산진구 부전동 345-30",
+            "bldNm": "부전동 근린생활시설",
+            "pmsno": "2026-건축과-신축허가-13",
+            "date": "2026-11-02",
+            "purps": "제1종근린생활시설",
+            "area": 274.27,
+            "floors": "지상1층",
+            "strct": "철근콘크리트구조",
+            "isLarge": false,
+            "lat": 35.1629023947705,
+            "lng": 129.059782899212,
+            "isNew": false
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 일광읍 삼성리 840-8",
+            "bldNm": "근린생활시설",
+            "pmsno": "2026-건축과-신축허가-51",
+            "date": "2026-11-02",
+            "purps": "제2종근린생활시설",
+            "area": 198.36,
+            "floors": "지상1층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.2643614510948,
+            "lng": 129.226542469125,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 강동동 에코델타시티 단독5-4 4",
+            "bldNm": "에코델타시티 단독5-4블록",
+            "pmsno": "2026-건축과-신축허가-50",
+            "date": "2026-11-01",
+            "purps": "단독주택",
+            "area": 184.88,
+            "floors": "지상3층",
+            "strct": "철근콘크리트구조",
+            "isLarge": false,
+            "lat": 35.1795543,
+            "lng": 129.0756416,
+            "isNew": false
+      },
+      {
+            "type": "착공",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 일광읍 이천리 174-1",
+            "bldNm": "근린생활시설",
+            "pmsno": "2026-건축과-신축신고-40",
+            "date": "2026-11-01",
+            "purps": "제2종근린생활시설",
+            "area": 96.6,
+            "floors": "지상1층",
+            "strct": "경량철골구조",
+            "isLarge": false,
+            "lat": 35.2730648443355,
+            "lng": 129.246854095742,
+            "isNew": false
+      }
+];
+
+    let currentFilter = 'all';
+    let currentSigungu = '';
+    let currentKeyword = '';
+
+    const tbody = document.getElementById('table-body');
+    const emptyState = document.getElementById('empty-state');
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const sigunguSelect = document.getElementById('sigungu-select');
+    const searchInput = document.getElementById('search-input');
+
+    function openNaverRoute(e, loc, lat, lng) {
+      e.preventDefault();
+      const dname = encodeURIComponent(loc);
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // 모바일 기기(Android/iOS): 네이버 지도 앱 길찾기 스킴 (도착지 위경도+명칭 전달 -> 목적지 자동입력)
+        const appUrl = "nmap://route/car?dlat=" + lat + "&dlng=" + lng + "&dname=" + dname + "&appname=busan-permits";
+        const webUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + lng + "&ey=" + lat + "&pathType=0&showMap=true";
+        
+        const start = Date.now();
+        window.location.href = appUrl;
+        setTimeout(() => {
+          if (Date.now() - start < 2000) {
+            window.location.href = webUrl;
+          }
+        }, 1200);
+      } else {
+        // PC 웹 브라우저: 네이버 지도 길찾기 (도착지 좌표 및 명칭 자동입력)
+        const pcUrl = "https://map.naver.com/p/directions/-/" + lng + "," + lat + "," + dname + "/-/car";
+        window.open(pcUrl, '_blank');
+      }
+    }
+
+    function renderTable() {
+      // 1. 필터링
+      const filtered = DATA.filter(item => {
+        // Tab filter
+        if (currentFilter === 'new' && !item.isNew) return false;
+        if (currentFilter === 'pms' && item.type !== '허가') return false;
+        if (currentFilter === 'stc' && item.type !== '착공') return false;
+        if (currentFilter === 'large' && !item.isLarge) return false;
+        if (currentFilter === 'small' && item.isLarge) return false;
+
+        // Sigungu filter
+        if (currentSigungu && item.sigungu !== currentSigungu) return false;
+
+        // Keyword filter
+        if (currentKeyword) {
+          const kw = currentKeyword.toLowerCase();
+          const matchLoc = item.loc.toLowerCase().includes(kw);
+          const matchPurps = item.purps.toLowerCase().includes(kw);
+          const matchBld = item.bldNm && item.bldNm.toLowerCase().includes(kw);
+          if (!matchLoc && !matchPurps && !matchBld) return false;
+        }
+
+        return true;
+      });
+
+      // 2. 정렬: 신규(isNew) 건이 무조건 맨 위에 오도록 최우선 정렬!
+      filtered.sort((a, b) => {
+        if (a.isNew && !b.isNew) return -1;
+        if (!a.isNew && b.isNew) return 1;
+        return b.date.localeCompare(a.date);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      tbody.innerHTML = filtered.map(item => {
+        const dname = encodeURIComponent(item.loc);
+        const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
+        return `
+        <tr class="${item.isNew ? 'row-new' : ''}">
+          <td>
+            ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
+            <span class="badge ${item.type === '허가' ? 'badge-pms' : 'badge-stc'}">${item.type}</span>
+            ${item.isLarge ? '<span class="badge badge-large">대형</span>' : ''}
+          </td>
+          <td><strong>${item.sigungu}</strong></td>
+          <td>
+            <div class="loc-wrapper">
+              <span class="loc-text">${item.loc}</span>
+              <a href="${fallbackUrl}" 
+                 onclick="openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
+                 target="_blank" rel="noopener noreferrer" 
+                 class="naver-btn" title="네이버 지도 길찾기 (도착지 자동 입력)">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect width="24" height="24" rx="4" fill="#03C75A"/>
+                  <path d="M14.5 16.5L9.5 9.5V16.5H6.5V7.5H9.5L14.5 14.5V7.5H17.5V16.5H14.5Z" fill="white"/>
+                </svg>
+                <span>길찾기</span>
+              </a>
+            </div>
+            ${item.bldNm && item.bldNm !== '-' ? `<div style="font-size:12px; color:var(--text-muted); margin-top:3px;">${item.bldNm}</div>` : ''}
+          </td>
+          <td>${item.purps}</td>
+          <td class="area-cell">${item.area.toLocaleString()} ㎡</td>
+          <td>${item.floors} · ${item.strct}</td>
+          <td class="date-cell"><strong>${item.date}</strong></td>
+        </tr>
+      `}).join('');
+    }
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTable();
+      });
+    });
+
+    sigunguSelect.addEventListener('change', (e) => {
+      currentSigungu = e.target.value;
+      renderTable();
+    });
+
+    searchInput.addEventListener('input', (e) => {
+      currentKeyword = e.target.value.trim();
+      renderTable();
+    });
+
+    renderTable();
+  </script>
+</body>
+</html>

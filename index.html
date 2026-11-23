@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <title>부산광역시 건축허가·착공 모니터링 대시보드</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -159,16 +165,43 @@
 
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
 
+    .kpi-toggle-btn { display: none; width: 100%; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 700; color: #334155; cursor: pointer; margin-bottom: 12px; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+    .mobile-list { display: none; flex-direction: column; gap: 10px; }
+    .m-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); cursor: pointer; transition: background 0.15s; }
+    .m-card.row-new { background: #fffaf5; border-color: #fdba74; }
+    .m-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .m-card-left { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
+    .m-card-gu { font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; }
+    .m-card-date { font-size: 12px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+    .m-card-loc { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 6px; line-height: 1.35; }
+    .m-card-bottom { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .m-card-meta { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
     @media (max-width: 768px) {
-      body { padding: 12px; }
-      h1 { font-size: 20px; }
-      .controls-card { flex-direction: column; align-items: stretch; }
-      .search-group { max-width: 100%; }
-      table { font-size: 12px; }
-      th, td { padding: 10px 8px; }
+      body { padding: 10px; }
+      header { margin-bottom: 12px; padding-bottom: 10px; gap: 6px; }
+      h1 { font-size: 17px; }
+      .header-sub { display: none; }
+      .last-updated { font-size: 11px; padding: 3px 8px; }
+      .new-banner { padding: 9px 12px; margin-bottom: 10px; font-size: 12.5px; flex-direction: column; align-items: flex-start; gap: 4px; }
+      .kpi-toggle-btn { display: flex; }
+      .kpi-grid { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+      .kpi-grid.open { display: grid; }
+      .kpi-card { padding: 10px 12px; }
+      .kpi-value { font-size: 20px; }
+      .kpi-desc { display: none; }
+      .controls-card { flex-direction: column; align-items: stretch; padding: 10px 12px; gap: 10px; margin-bottom: 10px; }
+      .filter-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
+      .filter-tabs::-webkit-scrollbar { display: none; }
+      .tab-btn { white-space: nowrap; flex-shrink: 0; padding: 6px 11px; font-size: 12px; }
+      .search-group { max-width: 100%; flex-wrap: nowrap; }
+      .select-input { max-width: 110px; font-size: 12px; padding: 7px 8px; }
+      .search-input { min-width: 0; font-size: 12.5px; padding: 7px 10px; }
+      .sigungu-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 9px 12px; margin-bottom: 12px; }
+      .sigungu-bar::-webkit-scrollbar { display: none; }
+      .table-container { display: none; }
+      .mobile-list { display: flex; }
       .badge { padding: 2px 6px; font-size: 10.5px; }
-      .loc-wrapper { gap: 6px; }
-      .new-banner { flex-direction: column; align-items: flex-start; gap: 6px; }
     }
     .map-wrap { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #f1f5f9; }
     #modal-map { width: 100%; height: 210px; z-index: 1; }
@@ -182,7 +215,7 @@
     <header>
       <div>
         <h1>🏗️ 부산광역시 건축허가·착공 모니터링</h1>
-        <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">세움터 실시간 연동 · 신규 등록 최상단 우선 정렬 · 네이버 지도 길찾기 연동</p>
+        <p class="header-sub" style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">세움터 실시간 연동 · 신규 등록 최상단 우선 정렬 · 네이버 지도 길찾기 연동</p>
       </div>
       <div class="last-updated">
         기준: 2026.11.01 ~ 11.23 (매일 아침 08:30 갱신)
@@ -195,8 +228,14 @@
       <div class="new-banner-chip">사상구 학장동(공장 1,467.2㎡) 1건 신규 반영</div>
     </div>
 
+    <!-- Mobile KPI Toggle -->
+    <button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpi()">
+      <span>📊 11월 현황 요약 (전체 53 · 허가 36 · 착공 17)</span>
+      <span id="kpi-toggle-arrow">▾</span>
+    </button>
+
     <!-- KPI Summary Grid -->
-    <div class="kpi-grid">
+    <div class="kpi-grid" id="kpi-grid">
       <div class="kpi-card new">
         <div class="kpi-title">신규 등록 건수 (NEW)</div>
         <div class="kpi-value" style="color: #ea580c;" id="kpi-new-count">1건</div>
@@ -276,6 +315,12 @@
       <div id="empty-state" class="empty-state" style="display: none;">
         조건에 일치하는 건축허가 및 착공 내역이 없습니다.
       </div>
+    </div>
+
+    <!-- Mobile Card List -->
+    <div class="mobile-list" id="mobile-list"></div>
+    <div id="mobile-empty-state" class="empty-state" style="display: none;">
+      조건에 일치하는 건축허가 및 착공 내역이 없습니다.
     </div>
   </div>
 
@@ -1352,7 +1397,16 @@
     }
 
     const tbody = document.getElementById('table-body');
+    const mobileList = document.getElementById('mobile-list');
     const emptyState = document.getElementById('empty-state');
+    const mobileEmptyState = document.getElementById('mobile-empty-state');
+
+    function toggleKpi() {
+      const grid = document.getElementById('kpi-grid');
+      const arrow = document.getElementById('kpi-toggle-arrow');
+      const opened = grid.classList.toggle('open');
+      arrow.textContent = opened ? '▴' : '▾';
+    }
     const tabButtons = document.querySelectorAll('.tab-btn');
     const sigunguSelect = document.getElementById('sigungu-select');
     const sigunguBar = document.getElementById('sigungu-bar');
@@ -1468,13 +1522,52 @@
 
       if (filtered.length === 0) {
         tbody.innerHTML = '';
+        mobileList.innerHTML = '';
         emptyState.style.display = 'block';
+        mobileEmptyState.style.display = 'block';
         return;
       }
 
       emptyState.style.display = 'none';
+      mobileEmptyState.style.display = 'none';
       window.__VISIBLE_ITEMS__ = filtered;
       const memos = loadMemos();
+
+      mobileList.innerHTML = filtered.map((item, idx) => {
+        const dname = encodeURIComponent(item.loc);
+        const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
+        const hasMemo = Boolean((memos[getItemKey(item)] || '').trim());
+        const shortLoc = item.loc.replace('부산광역시 ', '').replace(item.sigungu + ' ', '');
+        const areaStr = item.area ? item.area.toLocaleString() + '㎡' : '';
+        const metaStr = [item.purps, areaStr].filter(Boolean).join(' · ');
+        return `
+        <div class="m-card ${item.isNew ? 'row-new' : ''}" onclick="openDetail(${idx})">
+          <div class="m-card-top">
+            <div class="m-card-left">
+              ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
+              <span class="badge ${item.type === '허가' ? 'badge-pms' : 'badge-stc'}">${item.type}</span>
+              ${item.isLarge ? '<span class="badge badge-large">대형</span>' : ''}
+              ${hasMemo ? '<span class="badge badge-memo">📝</span>' : ''}
+              <span class="m-card-gu">${item.sigungu}</span>
+            </div>
+            <span class="m-card-date">${item.date}</span>
+          </div>
+          <div class="m-card-loc">${shortLoc}</div>
+          <div class="m-card-bottom">
+            <span class="m-card-meta">${metaStr}</span>
+            <a href="${fallbackUrl}"
+               onclick="event.stopPropagation(); openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
+               target="_blank" rel="noopener noreferrer"
+               class="naver-btn">
+              <svg viewBox="0 0 24 24" fill="none">
+                <rect width="24" height="24" rx="4" fill="#03C75A"/>
+                <path d="M14.5 16.5L9.5 9.5V16.5H6.5V7.5H9.5L14.5 14.5V7.5H17.5V16.5H14.5Z" fill="white"/>
+              </svg>
+              <span>길찾기</span>
+            </a>
+          </div>
+        </div>
+      `}).join('');
       tbody.innerHTML = filtered.map((item, idx) => {
         const dname = encodeURIComponent(item.loc);
         const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";

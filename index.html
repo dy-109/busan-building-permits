@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>부산광역시 건축허가·착공 모니터링 대시보드</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -168,6 +170,11 @@
       .loc-wrapper { gap: 6px; }
       .new-banner { flex-direction: column; align-items: flex-start; gap: 6px; }
     }
+    .map-wrap { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #f1f5f9; }
+    #modal-map { width: 100%; height: 210px; z-index: 1; }
+    .map-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; background: #f8fafc; border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .map-bar-label { font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
+    .map-bar-btns { display: flex; gap: 6px; }
   </style>
 </head>
 <body>
@@ -284,6 +291,13 @@
       </div>
       <div class="modal-body">
         <div class="detail-grid" id="modal-detail-grid"></div>
+        <div class="map-wrap" id="modal-map-wrap">
+          <div id="modal-map"></div>
+          <div class="map-bar">
+            <span class="map-bar-label" id="modal-map-coords">📍 현장 위치 지도</span>
+            <div class="map-bar-btns" id="modal-map-btns"></div>
+          </div>
+        </div>
         <div class="memo-box">
           <div class="memo-header">
             <span class="memo-label">📝 현장 메모</span>
@@ -1373,6 +1387,23 @@
       });
     }
 
+    function openNaverPlace(e, loc, lat, lng) {
+      e.preventDefault();
+      const dname = encodeURIComponent(loc);
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobile) {
+        const appUrl = "nmap://place?lat=" + lat + "&lng=" + lng + "&name=" + dname + "&appname=busan-permits";
+        const webUrl = "https://m.map.naver.com/search2/search.naver?query=" + dname;
+        const start = Date.now();
+        window.location.href = appUrl;
+        setTimeout(() => {
+          if (Date.now() - start < 2000) window.location.href = webUrl;
+        }, 1200);
+      } else {
+        window.open("https://map.naver.com/p/search/" + dname, '_blank');
+      }
+    }
+
     function openNaverRoute(e, loc, lat, lng) {
       e.preventDefault();
       const dname = encodeURIComponent(loc);
@@ -1477,6 +1508,9 @@
       `}).join('');
     }
 
+    let modalMap = null;
+    let modalMarker = null;
+
     function openDetail(idx) {
       const item = (window.__VISIBLE_ITEMS__ || [])[idx];
       if (!item) return;
@@ -1508,6 +1542,25 @@
 
       const dname = encodeURIComponent(item.loc);
       const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
+      const placeFallbackUrl = "https://m.map.naver.com/search2/search.naver?query=" + dname;
+      const mapWrap = document.getElementById('modal-map-wrap');
+      if (item.lat && item.lng) {
+        mapWrap.style.display = 'block';
+        document.getElementById('modal-map-coords').textContent = `📍 ${item.loc.replace('부산광역시 ', '')}`;
+        document.getElementById('modal-map-btns').innerHTML = `
+          <a href="${placeFallbackUrl}" onclick="openNaverPlace(event, '${item.loc}', ${item.lat}, ${item.lng})"
+             target="_blank" rel="noopener noreferrer" class="naver-btn" style="padding: 4px 10px; font-size: 11.5px;">
+            <span>네이버 지도 보기</span>
+          </a>
+          <a href="${fallbackUrl}" onclick="openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
+             target="_blank" rel="noopener noreferrer" class="naver-btn" style="padding: 4px 10px; font-size: 11.5px;">
+            <span>길찾기</span>
+          </a>
+        `;
+      } else {
+        mapWrap.style.display = 'none';
+      }
+
       document.getElementById('modal-footer').innerHTML = `
         <a href="${fallbackUrl}" onclick="openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
            target="_blank" rel="noopener noreferrer" class="naver-btn" style="padding: 7px 14px; font-size: 13px;">
@@ -1520,6 +1573,24 @@
       document.getElementById('modal-memo-input').value = memos[currentModalKey] || '';
       document.getElementById('modal-memo-status').textContent = '';
       document.getElementById('detail-modal').classList.add('open');
+
+      if (item.lat && item.lng && window.L) {
+        setTimeout(() => {
+          if (!modalMap) {
+            modalMap = L.map('modal-map', { zoomControl: true }).setView([item.lat, item.lng], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '&copy; OpenStreetMap'
+            }).addTo(modalMap);
+            modalMarker = L.marker([item.lat, item.lng]).addTo(modalMap);
+          } else {
+            modalMap.setView([item.lat, item.lng], 16);
+            modalMarker.setLatLng([item.lat, item.lng]);
+          }
+          modalMarker.bindPopup(`<strong>${item.loc.replace('부산광역시 ', '')}</strong>`).openPopup();
+          modalMap.invalidateSize();
+        }, 80);
+      }
     }
 
     function saveMemo() {

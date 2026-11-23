@@ -74,6 +74,41 @@
     .search-input:focus, .select-input:focus { border-color: var(--primary); }
     .search-input { flex: 1; min-width: 180px; }
 
+    /* Sigungu Quick Bar */
+    .sigungu-bar { background: var(--card-bg); padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .sigungu-bar-label { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-right: 6px; white-space: nowrap; }
+    .gu-chip { background: #f8fafc; border: 1px solid var(--border); padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #334155; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .gu-chip:hover { background: #eff6ff; border-color: #93c5fd; }
+    .gu-chip.active { background: #1e293b; color: #ffffff; border-color: #1e293b; }
+    .gu-chip .cnt { opacity: 0.75; font-weight: 500; margin-left: 3px; }
+    .loc-link { font-weight: 700; color: #1e293b; cursor: pointer; text-decoration: none; border-bottom: 1px dashed #94a3b8; transition: color 0.15s, border-color 0.15s; }
+    .loc-link:hover { color: var(--primary); border-bottom-color: var(--primary); }
+    tbody tr { cursor: pointer; }
+
+    /* Detail Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 1000; backdrop-filter: blur(2px); }
+    .modal-backdrop.open { display: flex; }
+    .modal-card { background: #ffffff; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.18); border: 1px solid var(--border); }
+    .modal-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; position: sticky; top: 0; background: #fff; z-index: 1; }
+    .modal-title { font-size: 17px; font-weight: 800; color: #0f172a; line-height: 1.35; }
+    .modal-close { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; cursor: pointer; color: #475569; flex-shrink: 0; }
+    .modal-close:hover { background: #e2e8f0; }
+    .modal-body { padding: 18px 20px; }
+    .detail-grid { display: grid; grid-template-columns: 110px 1fr; gap: 10px 14px; font-size: 13.5px; }
+    .detail-label { color: var(--text-muted); font-weight: 600; }
+    .detail-val { color: #0f172a; font-weight: 500; word-break: break-word; }
+    .detail-val.empty { color: #94a3b8; }
+    .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; background: #f8fafc; border-radius: 0 0 16px 16px; }
+    .memo-box { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .memo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .memo-label { font-size: 13px; font-weight: 700; color: #0f172a; }
+    .memo-hint { font-size: 11px; color: var(--text-muted); }
+    .memo-textarea { width: 100%; min-height: 82px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; line-height: 1.45; resize: vertical; outline: none; font-family: inherit; }
+    .memo-textarea:focus { border-color: var(--primary); }
+    .memo-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
+    .memo-status { font-size: 12px; color: #059669; font-weight: 600; }
+    .badge-memo { background: #fef3c7; color: #92400e; margin-left: 4px; }
+
     /* Table Container */
     .table-container { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
@@ -203,8 +238,13 @@
           <option value="중구">중구</option>
           <option value="해운대구">해운대구</option>
         </select>
-        <input type="text" class="search-input" id="search-input" placeholder="지번, 용도, 건물명 검색...">
+        <input type="text" class="search-input" id="search-input" placeholder="지번, 용도, 시공사, 설계사, 허가번호 검색...">
       </div>
+    </div>
+
+    <!-- Sigungu Quick Filter Bar -->
+    <div class="sigungu-bar" id="sigungu-bar">
+      <span class="sigungu-bar-label">📍 구·군별 보기</span>
     </div>
 
     <!-- Data Table -->
@@ -214,10 +254,7 @@
           <tr>
             <th>구분</th>
             <th>구·군</th>
-            <th>상세 위치 (지번 / 명칭 / 네이버 길찾기)</th>
-            <th>주용도</th>
-            <th>연면적 (㎡)</th>
-            <th>규모 (층수/구조)</th>
+            <th>주소 (클릭 시 상세 정보)</th>
             <th>허가·착공일</th>
           </tr>
         </thead>
@@ -228,6 +265,37 @@
       <div id="empty-state" class="empty-state" style="display: none;">
         조건에 일치하는 건축허가 및 착공 내역이 없습니다.
       </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-backdrop" id="detail-modal" onclick="if(event.target===this) closeModal()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <div id="modal-badges" style="margin-bottom: 6px;"></div>
+          <div class="modal-title" id="modal-title"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal()" aria-label="닫기">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid" id="modal-detail-grid"></div>
+        <div class="memo-box">
+          <div class="memo-header">
+            <span class="memo-label">📝 현장 메모</span>
+            <span class="memo-hint">이 기기(브라우저)에 저장됨</span>
+          </div>
+          <textarea id="modal-memo-input" class="memo-textarea" placeholder="담당자 연락처, 방문 일정, 견적 내용 등을 적어두세요..."></textarea>
+          <div class="memo-actions">
+            <span id="modal-memo-status" class="memo-status"></span>
+            <div style="display:flex; gap:6px;">
+              <button class="tab-btn" onclick="deleteMemo()" style="padding:5px 10px; font-size:12px;">삭제</button>
+              <button class="tab-btn active" onclick="saveMemo()" style="padding:5px 12px; font-size:12px;">메모 저장</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer"></div>
     </div>
   </div>
 
@@ -242,12 +310,15 @@
             "date": "2026-11-23",
             "purps": "공장(사무실)",
             "area": 1467.2,
-            "floors": "",
-            "strct": "",
+            "floors": "지상4층",
+            "strct": "일반철골구조",
             "isLarge": true,
             "lat": 35.1451257374379,
             "lng": 128.991045871006,
-            "isNew": true
+            "isNew": true,
+            "builder": "",
+            "designer": "주식회사에이원건축사사무소",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -258,12 +329,15 @@
             "date": "2026-11-20",
             "purps": "제1종근린생활시설(소매점·사무소)",
             "area": 302.52,
-            "floors": "",
+            "floors": "지상2층",
             "strct": "",
             "isLarge": false,
             "lat": 35.3535115745749,
             "lng": 129.136203309893,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "건축사사무소미가디자인건축",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -279,7 +353,10 @@
             "isLarge": false,
             "lat": 35.2720723246856,
             "lng": 129.229416502359,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -295,7 +372,10 @@
             "isLarge": false,
             "lat": 35.2718519517059,
             "lng": 129.229766252869,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -311,7 +391,10 @@
             "isLarge": false,
             "lat": 35.2718521369589,
             "lng": 129.229042588124,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -327,7 +410,10 @@
             "isLarge": true,
             "lat": 35.1970309633464,
             "lng": 129.079124947827,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -338,12 +424,15 @@
             "date": "2026-11-18",
             "purps": "제2종근린생활시설(소매점·의원·일반음식점·사무소)",
             "area": 1445.01,
-            "floors": "",
-            "strct": "",
+            "floors": "지상5층",
+            "strct": "일반철골구조",
             "isLarge": true,
             "lat": 35.0970563760564,
             "lng": 129.062458771395,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -354,12 +443,15 @@
             "date": "2026-11-18",
             "purps": "공장",
             "area": 782.65,
-            "floors": "",
-            "strct": "",
+            "floors": "지상2층",
+            "strct": "일반철골구조",
             "isLarge": false,
             "lat": 35.147248226913,
             "lng": 128.97687069764,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "세화 건축사사무소",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -375,7 +467,10 @@
             "isLarge": false,
             "lat": 35.1322803279821,
             "lng": 128.913469897487,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -391,7 +486,10 @@
             "isLarge": false,
             "lat": 35.156992779676,
             "lng": 129.122100947494,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -407,7 +505,10 @@
             "isLarge": false,
             "lat": 35.1283940290592,
             "lng": 129.007738403723,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -423,7 +524,10 @@
             "isLarge": false,
             "lat": 35.1888914720138,
             "lng": 128.980566447494,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -439,7 +543,10 @@
             "isLarge": true,
             "lat": 35.0915400027392,
             "lng": 128.901190022292,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -455,7 +562,10 @@
             "isLarge": false,
             "lat": 35.3276479736522,
             "lng": 129.207340156113,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -471,7 +581,10 @@
             "isLarge": false,
             "lat": 35.213558059313,
             "lng": 129.041924042456,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -487,7 +600,10 @@
             "isLarge": false,
             "lat": 35.0535159981555,
             "lng": 128.995569033113,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -503,7 +619,10 @@
             "isLarge": false,
             "lat": 35.1835055234877,
             "lng": 129.127924723238,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -519,7 +638,10 @@
             "isLarge": true,
             "lat": 35.3243152141714,
             "lng": 129.254198848938,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -535,7 +657,10 @@
             "isLarge": true,
             "lat": 35.1244657364044,
             "lng": 128.909315875964,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -551,7 +676,10 @@
             "isLarge": true,
             "lat": 35.3234444519713,
             "lng": 129.25362536031,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -567,7 +695,10 @@
             "isLarge": false,
             "lat": 35.3036138841966,
             "lng": 129.11106553614,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "(주)대방 건축사사무소",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -583,7 +714,10 @@
             "isLarge": true,
             "lat": 35.1606477437811,
             "lng": 129.188992400386,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "(주)상지엔지니어링건축사사무소",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -599,7 +733,10 @@
             "isLarge": false,
             "lat": 35.2594289659279,
             "lng": 129.087459908189,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "아담 종합건축사사무소",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -615,7 +752,10 @@
             "isLarge": false,
             "lat": 35.1842707758866,
             "lng": 128.956864717844,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "건축사 사무소 터",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -631,7 +771,10 @@
             "isLarge": false,
             "lat": 35.2762415200062,
             "lng": 129.111639745169,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -647,7 +790,10 @@
             "isLarge": false,
             "lat": 35.1835055234877,
             "lng": 129.127924723238,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -663,7 +809,10 @@
             "isLarge": false,
             "lat": 35.152963307509,
             "lng": 128.836394905032,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -679,7 +828,10 @@
             "isLarge": false,
             "lat": 35.1329849319725,
             "lng": 129.048559049834,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -695,7 +847,10 @@
             "isLarge": false,
             "lat": 35.1428905174175,
             "lng": 129.06273931665,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "송지 종합건축사사무소",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -711,7 +866,10 @@
             "isLarge": false,
             "lat": 35.1986406543978,
             "lng": 128.893135456952,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -727,7 +885,10 @@
             "isLarge": false,
             "lat": 35.1077851974251,
             "lng": 129.033345836311,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -743,7 +904,10 @@
             "isLarge": false,
             "lat": 35.3379687866321,
             "lng": 129.173942541379,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -759,7 +923,10 @@
             "isLarge": true,
             "lat": 35.1598373085433,
             "lng": 129.059060146415,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "(주)종합건축사사무소 세온",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -775,7 +942,10 @@
             "isLarge": true,
             "lat": 35.1795543,
             "lng": 129.0756416,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -791,7 +961,10 @@
             "isLarge": false,
             "lat": 35.2459347135833,
             "lng": 129.241545167961,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -807,7 +980,10 @@
             "isLarge": true,
             "lat": 35.1601370881761,
             "lng": 129.137149944238,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -823,7 +999,10 @@
             "isLarge": true,
             "lat": 35.0968288223812,
             "lng": 129.021595821123,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -839,7 +1018,10 @@
             "isLarge": true,
             "lat": 35.2451381231854,
             "lng": 129.223337710564,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -855,7 +1037,10 @@
             "isLarge": false,
             "lat": 35.0915314064505,
             "lng": 129.069563475749,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "대륙 종합건축사사무소",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -871,7 +1056,10 @@
             "isLarge": false,
             "lat": 35.1166655801016,
             "lng": 129.019602952504,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -887,7 +1075,10 @@
             "isLarge": false,
             "lat": 35.0915314064505,
             "lng": 129.069563475749,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "대륙 종합건축사사무소",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -903,7 +1094,10 @@
             "isLarge": false,
             "lat": 35.1075095303429,
             "lng": 128.922025607388,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -919,7 +1113,10 @@
             "isLarge": true,
             "lat": 35.1227877218981,
             "lng": 128.855159681966,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -935,7 +1132,10 @@
             "isLarge": true,
             "lat": 35.257870158084,
             "lng": 129.08960018237,
-            "isNew": false
+            "isNew": false,
+            "builder": "HJ중공업",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -951,7 +1151,10 @@
             "isLarge": true,
             "lat": 35.0815741660902,
             "lng": 128.960921290516,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -967,7 +1170,10 @@
             "isLarge": false,
             "lat": 35.1775633610706,
             "lng": 128.901510413072,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -983,7 +1189,10 @@
             "isLarge": false,
             "lat": 35.1721054805614,
             "lng": 128.957607050664,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -999,7 +1208,10 @@
             "isLarge": false,
             "lat": 35.196968277402,
             "lng": 129.109301704167,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "동림건축사사무소",
+            "supervisor": "목림 건축사사무소"
       },
       {
             "type": "착공",
@@ -1015,7 +1227,10 @@
             "isLarge": false,
             "lat": 35.1624332748962,
             "lng": 129.156006333044,
-            "isNew": false
+            "isNew": false,
+            "builder": "에스아이엘산업(주)",
+            "designer": "루가건축사사무소",
+            "supervisor": "루가 건축사사무소"
       },
       {
             "type": "허가",
@@ -1031,7 +1246,10 @@
             "isLarge": false,
             "lat": 35.1629023947705,
             "lng": 129.059782899212,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "허가",
@@ -1047,7 +1265,10 @@
             "isLarge": false,
             "lat": 35.2643614510948,
             "lng": 129.226542469125,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -1063,7 +1284,10 @@
             "isLarge": false,
             "lat": 35.1795543,
             "lng": 129.0756416,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "(주)라라호호건축사사무소",
+            "supervisor": ""
       },
       {
             "type": "착공",
@@ -1079,7 +1303,10 @@
             "isLarge": false,
             "lat": 35.2730648443355,
             "lng": 129.246854095742,
-            "isNew": false
+            "isNew": false,
+            "builder": "",
+            "designer": "건축사사무소 건축공간",
+            "supervisor": ""
       }
 ];
 
@@ -1087,11 +1314,60 @@
     let currentSigungu = '';
     let currentKeyword = '';
 
+    const MEMO_KEY = 'busan_permits_memos_v1';
+    let currentModalKey = '';
+
+    function getItemKey(item) {
+      return `${item.sigungu || ''}::${item.pmsno || ''}::${item.loc || ''}`;
+    }
+
+    function loadMemos() {
+      try {
+        return JSON.parse(localStorage.getItem(MEMO_KEY) || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveMemosMap(map) {
+      localStorage.setItem(MEMO_KEY, JSON.stringify(map));
+    }
+
     const tbody = document.getElementById('table-body');
     const emptyState = document.getElementById('empty-state');
     const tabButtons = document.querySelectorAll('.tab-btn');
     const sigunguSelect = document.getElementById('sigungu-select');
+    const sigunguBar = document.getElementById('sigungu-bar');
     const searchInput = document.getElementById('search-input');
+
+    function renderSigunguBar() {
+      const counts = {};
+      DATA.forEach(item => {
+        if (currentFilter === 'new' && !item.isNew) return;
+        if (currentFilter === 'pms' && item.type !== '허가') return;
+        if (currentFilter === 'stc' && item.type !== '착공') return;
+        if (currentFilter === 'large' && !item.isLarge) return;
+        if (currentFilter === 'small' && item.isLarge) return;
+        counts[item.sigungu] = (counts[item.sigungu] || 0) + 1;
+      });
+      const totalVisible = Object.values(counts).reduce((a, b) => a + b, 0);
+      const sortedGus = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko'));
+
+      let html = '<span class="sigungu-bar-label">📍 구·군별 보기</span>';
+      html += `<button class="gu-chip ${currentSigungu === '' ? 'active' : ''}" data-gu="">전체<span class="cnt">${totalVisible}</span></button>`;
+      sortedGus.forEach(([gu, cnt]) => {
+        html += `<button class="gu-chip ${currentSigungu === gu ? 'active' : ''}" data-gu="${gu}">${gu}<span class="cnt">${cnt}</span></button>`;
+      });
+      sigunguBar.innerHTML = html;
+
+      sigunguBar.querySelectorAll('.gu-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentSigungu = btn.dataset.gu;
+          sigunguSelect.value = currentSigungu;
+          renderTable();
+        });
+      });
+    }
 
     function openNaverRoute(e, loc, lat, lng) {
       e.preventDefault();
@@ -1136,11 +1412,17 @@
           const matchLoc = item.loc.toLowerCase().includes(kw);
           const matchPurps = item.purps.toLowerCase().includes(kw);
           const matchBld = item.bldNm && item.bldNm.toLowerCase().includes(kw);
-          if (!matchLoc && !matchPurps && !matchBld) return false;
+          const matchBuilder = item.builder && item.builder.toLowerCase().includes(kw);
+          const matchDesigner = item.designer && item.designer.toLowerCase().includes(kw);
+          const matchSupervisor = item.supervisor && item.supervisor.toLowerCase().includes(kw);
+          const matchPmsno = item.pmsno && item.pmsno.toLowerCase().includes(kw);
+          if (!matchLoc && !matchPurps && !matchBld && !matchBuilder && !matchDesigner && !matchSupervisor && !matchPmsno) return false;
         }
 
         return true;
       });
+
+      renderSigunguBar();
 
       // 2. 정렬: 신규(isNew) 건이 무조건 맨 위에 오도록 최우선 정렬!
       filtered.sort((a, b) => {
@@ -1156,22 +1438,26 @@
       }
 
       emptyState.style.display = 'none';
-      tbody.innerHTML = filtered.map(item => {
+      window.__VISIBLE_ITEMS__ = filtered;
+      const memos = loadMemos();
+      tbody.innerHTML = filtered.map((item, idx) => {
         const dname = encodeURIComponent(item.loc);
         const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
+        const hasMemo = Boolean((memos[getItemKey(item)] || '').trim());
         return `
-        <tr class="${item.isNew ? 'row-new' : ''}">
+        <tr class="${item.isNew ? 'row-new' : ''}" onclick="openDetail(${idx})">
           <td>
             ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
             <span class="badge ${item.type === '허가' ? 'badge-pms' : 'badge-stc'}">${item.type}</span>
             ${item.isLarge ? '<span class="badge badge-large">대형</span>' : ''}
+            ${hasMemo ? '<span class="badge badge-memo">📝 메모</span>' : ''}
           </td>
           <td><strong>${item.sigungu}</strong></td>
           <td>
             <div class="loc-wrapper">
-              <span class="loc-text">${item.loc}</span>
+              <span class="loc-link">${item.loc}</span>
               <a href="${fallbackUrl}" 
-                 onclick="openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
+                 onclick="event.stopPropagation(); openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
                  target="_blank" rel="noopener noreferrer" 
                  class="naver-btn" title="네이버 지도 길찾기 (도착지 자동 입력)">
                 <svg viewBox="0 0 24 24" fill="none">
@@ -1181,15 +1467,88 @@
                 <span>길찾기</span>
               </a>
             </div>
-            ${item.bldNm && item.bldNm !== '-' ? `<div style="font-size:12px; color:var(--text-muted); margin-top:3px;">${item.bldNm}</div>` : ''}
           </td>
-          <td>${item.purps}</td>
-          <td class="area-cell">${item.area.toLocaleString()} ㎡</td>
-          <td>${item.floors} · ${item.strct}</td>
           <td class="date-cell"><strong>${item.date}</strong></td>
         </tr>
       `}).join('');
     }
+
+    function openDetail(idx) {
+      const item = (window.__VISIBLE_ITEMS__ || [])[idx];
+      if (!item) return;
+      const badgesHtml = `
+        ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
+        <span class="badge ${item.type === '허가' ? 'badge-pms' : 'badge-stc'}">${item.type}</span>
+        ${item.isLarge ? '<span class="badge badge-large">대형</span>' : ''}
+      `;
+      document.getElementById('modal-badges').innerHTML = badgesHtml;
+      document.getElementById('modal-title').textContent = item.loc;
+
+      const scaleText = [item.floors, item.strct].filter(Boolean).join(' · ');
+      const rows = [
+        ['구·군', item.sigungu],
+        ['허가·착공일', item.date],
+        ['허가일련번호', item.pmsno],
+        ['건물명/내용', item.bldNm && item.bldNm !== '-' ? item.bldNm : ''],
+        ['주용도', item.purps],
+        ['연면적', item.area ? item.area.toLocaleString() + ' ㎡' : ''],
+        ['규모(층수/구조)', scaleText],
+        ['시공사', item.builder],
+        ['설계자', item.designer],
+        ['감리자', item.supervisor]
+      ];
+      document.getElementById('modal-detail-grid').innerHTML = rows.map(([k, v]) => `
+        <div class="detail-label">${k}</div>
+        <div class="detail-val ${v ? '' : 'empty'}">${v || '미공시 / 확인 안 됨'}</div>
+      `).join('');
+
+      const dname = encodeURIComponent(item.loc);
+      const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
+      document.getElementById('modal-footer').innerHTML = `
+        <a href="${fallbackUrl}" onclick="openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
+           target="_blank" rel="noopener noreferrer" class="naver-btn" style="padding: 7px 14px; font-size: 13px;">
+          <span>네이버 지도 길찾기</span>
+        </a>
+        <button class="tab-btn" onclick="closeModal()">닫기</button>
+      `;
+      currentModalKey = getItemKey(item);
+      const memos = loadMemos();
+      document.getElementById('modal-memo-input').value = memos[currentModalKey] || '';
+      document.getElementById('modal-memo-status').textContent = '';
+      document.getElementById('detail-modal').classList.add('open');
+    }
+
+    function saveMemo() {
+      if (!currentModalKey) return;
+      const val = document.getElementById('modal-memo-input').value.trim();
+      const memos = loadMemos();
+      if (val) {
+        memos[currentModalKey] = val;
+      } else {
+        delete memos[currentModalKey];
+      }
+      saveMemosMap(memos);
+      document.getElementById('modal-memo-status').textContent = val ? '저장됐어요' : '메모가 비어 삭제됐어요';
+      renderTable();
+    }
+
+    function deleteMemo() {
+      if (!currentModalKey) return;
+      const memos = loadMemos();
+      delete memos[currentModalKey];
+      saveMemosMap(memos);
+      document.getElementById('modal-memo-input').value = '';
+      document.getElementById('modal-memo-status').textContent = '삭제됐어요';
+      renderTable();
+    }
+
+    function closeModal() {
+      document.getElementById('detail-modal').classList.remove('open');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
 
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => {

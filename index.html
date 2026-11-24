@@ -175,11 +175,16 @@
     .badge-visited { background: #dcfce7; color: #15803d; }
     .visit-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 7px; font-size: 11.5px; font-weight: 700; border: 1px solid var(--border); background: #fff; color: #475569; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
     .visit-btn.checked { background: #dcfce7; border-color: #86efac; color: #15803d; }
-    .visit-box { margin-top: 14px; padding: 12px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-    .visit-check-label { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: #166534; cursor: pointer; }
-    .visit-check-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer; }
-    .visit-date-wrap { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #166534; }
+    .visit-box { margin-top: 14px; padding: 12px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; }
+    .visit-box-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .visit-box-title { font-size: 13.5px; font-weight: 700; color: #166534; }
+    .visit-add-wrap { display: flex; align-items: center; gap: 6px; }
     .visit-date-input { border: 1px solid #86efac; border-radius: 6px; padding: 4px 8px; font-size: 12.5px; background: #fff; color: #0f172a; }
+    .visit-add-btn { padding: 5px 10px; border-radius: 6px; border: none; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .visit-history { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .visit-chip { display: inline-flex; align-items: center; gap: 5px; background: #fff; border: 1px solid #86efac; color: #166534; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .visit-chip button { border: none; background: none; color: #dc2626; font-weight: 700; cursor: pointer; font-size: 13px; line-height: 1; padding: 0 2px; }
+    .visit-empty { font-size: 12px; color: #64748b; margin-top: 8px; }
     .m-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
     .m-card-left { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
     .m-card-gu { font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; }
@@ -359,14 +364,14 @@
           </div>
         </div>
         <div class="visit-box">
-          <label class="visit-check-label">
-            <input type="checkbox" id="modal-visit-check" onchange="onModalVisitToggle()">
-            <span>✅ 다녀온 곳 체크</span>
-          </label>
-          <div class="visit-date-wrap">
-            <span>방문일</span>
-            <input type="date" id="modal-visit-date" class="visit-date-input" onchange="onModalVisitDateChange()">
+          <div class="visit-box-top">
+            <span class="visit-box-title">✅ 방문 기록 (<span id="modal-visit-count">0</span>회)</span>
+            <div class="visit-add-wrap">
+              <input type="date" id="modal-visit-date" class="visit-date-input">
+              <button type="button" class="visit-add-btn" onclick="addModalVisit()">+ 방문 추가</button>
+            </div>
           </div>
+          <div id="modal-visit-history" class="visit-history"></div>
         </div>
         <div class="memo-box">
           <div class="memo-header">
@@ -1433,7 +1438,16 @@
 
     function loadVisits() {
       try {
-        return JSON.parse(localStorage.getItem(VISIT_KEY) || '{}');
+        const raw = JSON.parse(localStorage.getItem(VISIT_KEY) || '{}');
+        const norm = {};
+        for (const [k, v] of Object.entries(raw)) {
+          if (Array.isArray(v)) {
+            norm[k] = v.filter(Boolean);
+          } else if (typeof v === 'string' && v) {
+            norm[k] = [v];
+          }
+        }
+        return norm;
       } catch (e) {
         return {};
       }
@@ -1443,14 +1457,12 @@
       localStorage.setItem(VISIT_KEY, JSON.stringify(map));
     }
 
-    function toggleVisitQuick(event, key) {
+    function addVisitQuick(event, key) {
       event.stopPropagation();
       const visits = loadVisits();
-      if (visits[key]) {
-        delete visits[key];
-      } else {
-        visits[key] = getTodayStr();
-      }
+      const list = visits[key] || [];
+      list.push(getTodayStr());
+      visits[key] = list;
       saveVisitsMap(visits);
       renderTable();
     }
@@ -1559,7 +1571,7 @@
 
     function renderTable() {
       const visits = loadVisits();
-      const visitedTotal = DATA.filter(item => Boolean(visits[getItemKey(item)])).length;
+      const visitedTotal = DATA.filter(item => (visits[getItemKey(item)] || []).length > 0).length;
       const vTab = document.getElementById('visited-tab-count');
       const uvTab = document.getElementById('unvisited-tab-count');
       if (vTab) vTab.textContent = visitedTotal;
@@ -1567,7 +1579,7 @@
 
       // 1. 필터링
       const filtered = DATA.filter(item => {
-        const isVisited = Boolean(visits[getItemKey(item)]);
+        const isVisited = (visits[getItemKey(item)] || []).length > 0;
         // Tab filter
         if (currentFilter === 'new' && !item.isNew) return false;
         if (currentFilter === 'pms' && item.type !== '허가') return false;
@@ -1598,11 +1610,13 @@
 
       renderSigunguBar();
 
-      // 2. 정렬: 방문완료 탭이면 방문일 최신순, 그 외엔 신규(isNew) 우선 후 허가·착공일 최신순
+      // 2. 정렬: 방문완료 탭이면 최근 방문일 최신순, 그 외엔 신규(isNew) 우선 후 허가·착공일 최신순
       filtered.sort((a, b) => {
         if (currentFilter === 'visited') {
-          const va = visits[getItemKey(a)] || '';
-          const vb = visits[getItemKey(b)] || '';
+          const listA = visits[getItemKey(a)] || [];
+          const listB = visits[getItemKey(b)] || [];
+          const va = listA.length ? listA[listA.length - 1] : '';
+          const vb = listB.length ? listB[listB.length - 1] : '';
           if (va !== vb) return vb.localeCompare(va);
         }
         if (a.isNew && !b.isNew) return -1;
@@ -1628,12 +1642,15 @@
         const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
         const itemKey = getItemKey(item);
         const hasMemo = Boolean((memos[itemKey] || '').trim());
-        const visitDate = visits[itemKey] || '';
+        const vList = visits[itemKey] || [];
+        const vCount = vList.length;
+        const lastV = vCount ? vList[vCount - 1] : '';
+        const visitLabel = vCount ? `✅ ${lastV.slice(5)}${vCount > 1 ? ' (' + vCount + '회)' : ''}` : '+ 방문';
         const shortLoc = item.loc.replace('부산광역시 ', '').replace(item.sigungu + ' ', '');
         const areaStr = item.area ? item.area.toLocaleString() + '㎡' : '';
         const metaStr = [item.purps, areaStr].filter(Boolean).join(' · ');
         return `
-        <div class="m-card ${item.isNew ? 'row-new' : ''} ${visitDate ? 'row-visited' : ''}" onclick="openDetail(${idx})">
+        <div class="m-card ${item.isNew ? 'row-new' : ''} ${vCount ? 'row-visited' : ''}" onclick="openDetail(${idx})">
           <div class="m-card-top">
             <div class="m-card-left">
               ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
@@ -1648,8 +1665,8 @@
           <div class="m-card-bottom">
             <span class="m-card-meta">${metaStr}</span>
             <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-              <button type="button" class="visit-btn ${visitDate ? 'checked' : ''}" onclick="toggleVisitQuick(event, '${itemKey.replace(/'/g, "\\'")}')">
-                ${visitDate ? '✅ ' + visitDate.slice(5) : '☐ 방문'}
+              <button type="button" class="visit-btn ${vCount ? 'checked' : ''}" onclick="addVisitQuick(event, '${itemKey.replace(/'/g, "\\'")}')">
+                ${visitLabel}
               </button>
               <a href="${fallbackUrl}"
                  onclick="event.stopPropagation(); openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
@@ -1670,14 +1687,17 @@
         const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
         const itemKey = getItemKey(item);
         const hasMemo = Boolean((memos[itemKey] || '').trim());
-        const visitDate = visits[itemKey] || '';
+        const vList = visits[itemKey] || [];
+        const vCount = vList.length;
+        const lastV = vCount ? vList[vCount - 1] : '';
+        const visitLabel = vCount ? `✅ ${lastV.slice(5)}${vCount > 1 ? ' (' + vCount + '회)' : ''}` : '+ 방문';
         return `
-        <tr class="${item.isNew ? 'row-new' : ''} ${visitDate ? 'row-visited' : ''}" onclick="openDetail(${idx})">
+        <tr class="${item.isNew ? 'row-new' : ''} ${vCount ? 'row-visited' : ''}" onclick="openDetail(${idx})">
           <td class="col-badges">
             ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
             <span class="badge ${item.type === '허가' ? 'badge-pms' : 'badge-stc'}">${item.type}</span>
             ${item.isLarge ? '<span class="badge badge-large">대형</span>' : ''}
-            ${visitDate ? '<span class="badge badge-visited">✅ ' + visitDate.slice(5) + '</span>' : ''}
+            ${vCount ? `<span class="badge badge-visited">✅ ${vCount}회</span>` : ''}
             ${hasMemo ? '<span class="badge badge-memo">📝</span>' : ''}
           </td>
           <td class="col-nowrap"><strong>${item.sigungu}</strong></td>
@@ -1685,8 +1705,8 @@
             <div class="loc-wrapper">
               <span class="loc-link">${item.loc.replace('부산광역시 ', '')}</span>
               <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                <button type="button" class="visit-btn ${visitDate ? 'checked' : ''}" onclick="toggleVisitQuick(event, '${itemKey.replace(/'/g, "\\'")}')">
-                  ${visitDate ? '✅ ' + visitDate.slice(5) : '☐ 방문'}
+                <button type="button" class="visit-btn ${vCount ? 'checked' : ''}" onclick="addVisitQuick(event, '${itemKey.replace(/'/g, "\\'")}')">
+                  ${visitLabel}
                 </button>
                 <a href="${fallbackUrl}" 
                    onclick="event.stopPropagation(); openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
@@ -1768,11 +1788,8 @@
       `;
       currentModalKey = getItemKey(item);
       const memos = loadMemos();
-      const visits = loadVisits();
-      const vDate = visits[currentModalKey] || '';
-      document.getElementById('modal-visit-check').checked = Boolean(vDate);
-      document.getElementById('modal-visit-date').value = vDate || getTodayStr();
-      document.getElementById('modal-visit-date').disabled = !Boolean(vDate);
+      document.getElementById('modal-visit-date').value = getTodayStr();
+      renderModalVisits();
       document.getElementById('modal-memo-input').value = memos[currentModalKey] || '';
       document.getElementById('modal-memo-status').textContent = '';
       document.getElementById('detail-modal').classList.add('open');
@@ -1796,32 +1813,47 @@
       }
     }
 
-    function onModalVisitToggle() {
-      if (!currentModalKey) return;
-      const checked = document.getElementById('modal-visit-check').checked;
-      const dateInput = document.getElementById('modal-visit-date');
+    function renderModalVisits() {
       const visits = loadVisits();
-      if (checked) {
-        const d = dateInput.value || getTodayStr();
-        dateInput.value = d;
-        dateInput.disabled = false;
-        visits[currentModalKey] = d;
-      } else {
-        dateInput.disabled = true;
-        delete visits[currentModalKey];
+      const list = visits[currentModalKey] || [];
+      document.getElementById('modal-visit-count').textContent = list.length;
+      const box = document.getElementById('modal-visit-history');
+      if (!list.length) {
+        box.innerHTML = '<span class="visit-empty">아직 방문 기록이 없어요. 날짜를 선택하고 + 방문 추가를 눌러주세요.</span>';
+        return;
       }
+      box.innerHTML = list.map((d, i) => `
+        <span class="visit-chip">
+          <span>${i + 1}차 ${d}</span>
+          <button type="button" onclick="removeModalVisit(${i})" title="삭제">&times;</button>
+        </span>
+      `).join('');
+    }
+
+    function addModalVisit() {
+      if (!currentModalKey) return;
+      const d = document.getElementById('modal-visit-date').value || getTodayStr();
+      const visits = loadVisits();
+      const list = visits[currentModalKey] || [];
+      list.push(d);
+      visits[currentModalKey] = list;
       saveVisitsMap(visits);
+      renderModalVisits();
       renderTable();
     }
 
-    function onModalVisitDateChange() {
+    function removeModalVisit(idx) {
       if (!currentModalKey) return;
-      const checked = document.getElementById('modal-visit-check').checked;
-      if (!checked) return;
-      const d = document.getElementById('modal-visit-date').value || getTodayStr();
       const visits = loadVisits();
-      visits[currentModalKey] = d;
+      const list = visits[currentModalKey] || [];
+      list.splice(idx, 1);
+      if (list.length) {
+        visits[currentModalKey] = list;
+      } else {
+        delete visits[currentModalKey];
+      }
       saveVisitsMap(visits);
+      renderModalVisits();
       renderTable();
     }
 

@@ -170,6 +170,16 @@
     .mobile-list { display: none; flex-direction: column; gap: 10px; }
     .m-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); cursor: pointer; transition: background 0.15s; }
     .m-card.row-new { background: #fffaf5; border-color: #fdba74; }
+    .m-card.row-visited { background: #f0fdf4; border-color: #86efac; }
+    tr.row-visited td { background: #f0fdf4; }
+    .badge-visited { background: #dcfce7; color: #15803d; }
+    .visit-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 7px; font-size: 11.5px; font-weight: 700; border: 1px solid var(--border); background: #fff; color: #475569; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .visit-btn.checked { background: #dcfce7; border-color: #86efac; color: #15803d; }
+    .visit-box { margin-top: 14px; padding: 12px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .visit-check-label { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: #166534; cursor: pointer; }
+    .visit-check-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer; }
+    .visit-date-wrap { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #166534; }
+    .visit-date-input { border: 1px solid #86efac; border-radius: 6px; padding: 4px 8px; font-size: 12.5px; background: #fff; color: #0f172a; }
     .m-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
     .m-card-left { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
     .m-card-gu { font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; }
@@ -270,6 +280,8 @@
         <button class="tab-btn" data-filter="stc">착공 (18건)</button>
         <button class="tab-btn" data-filter="large">대형 1,000㎡ 이상 (16건)</button>
         <button class="tab-btn" data-filter="small">소규모 1,000㎡ 미만 (38건)</button>
+        <button class="tab-btn" data-filter="visited" style="color: #15803d;">✅ 방문완료 (<span id="visited-tab-count">0</span>건)</button>
+        <button class="tab-btn" data-filter="unvisited">미방문 (<span id="unvisited-tab-count">0</span>건)</button>
       </div>
       <div class="search-group">
         <select class="select-input" id="sigungu-select">
@@ -344,6 +356,16 @@
           <div class="map-bar">
             <span class="map-bar-label" id="modal-map-coords">📍 현장 위치 지도</span>
             <div class="map-bar-btns" id="modal-map-btns"></div>
+          </div>
+        </div>
+        <div class="visit-box">
+          <label class="visit-check-label">
+            <input type="checkbox" id="modal-visit-check" onchange="onModalVisitToggle()">
+            <span>✅ 다녀온 곳 체크</span>
+          </label>
+          <div class="visit-date-wrap">
+            <span>방문일</span>
+            <input type="date" id="modal-visit-date" class="visit-date-input" onchange="onModalVisitDateChange()">
           </div>
         </div>
         <div class="memo-box">
@@ -1400,7 +1422,38 @@
     let currentKeyword = '';
 
     const MEMO_KEY = 'busan_permits_memos_v1';
+    const VISIT_KEY = 'busan_permits_visits_v1';
     let currentModalKey = '';
+
+    function getTodayStr() {
+      const now = new Date();
+      const kst = new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000);
+      return kst.toISOString().slice(0, 10);
+    }
+
+    function loadVisits() {
+      try {
+        return JSON.parse(localStorage.getItem(VISIT_KEY) || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveVisitsMap(map) {
+      localStorage.setItem(VISIT_KEY, JSON.stringify(map));
+    }
+
+    function toggleVisitQuick(event, key) {
+      event.stopPropagation();
+      const visits = loadVisits();
+      if (visits[key]) {
+        delete visits[key];
+      } else {
+        visits[key] = getTodayStr();
+      }
+      saveVisitsMap(visits);
+      renderTable();
+    }
 
     function getItemKey(item) {
       return `${item.sigungu || ''}::${item.pmsno || ''}::${item.loc || ''}`;
@@ -1505,14 +1558,24 @@
     }
 
     function renderTable() {
+      const visits = loadVisits();
+      const visitedTotal = DATA.filter(item => Boolean(visits[getItemKey(item)])).length;
+      const vTab = document.getElementById('visited-tab-count');
+      const uvTab = document.getElementById('unvisited-tab-count');
+      if (vTab) vTab.textContent = visitedTotal;
+      if (uvTab) uvTab.textContent = DATA.length - visitedTotal;
+
       // 1. 필터링
       const filtered = DATA.filter(item => {
+        const isVisited = Boolean(visits[getItemKey(item)]);
         // Tab filter
         if (currentFilter === 'new' && !item.isNew) return false;
         if (currentFilter === 'pms' && item.type !== '허가') return false;
         if (currentFilter === 'stc' && item.type !== '착공') return false;
         if (currentFilter === 'large' && !item.isLarge) return false;
         if (currentFilter === 'small' && item.isLarge) return false;
+        if (currentFilter === 'visited' && !isVisited) return false;
+        if (currentFilter === 'unvisited' && isVisited) return false;
 
         // Sigungu filter
         if (currentSigungu && item.sigungu !== currentSigungu) return false;
@@ -1558,12 +1621,14 @@
       mobileList.innerHTML = filtered.map((item, idx) => {
         const dname = encodeURIComponent(item.loc);
         const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
-        const hasMemo = Boolean((memos[getItemKey(item)] || '').trim());
+        const itemKey = getItemKey(item);
+        const hasMemo = Boolean((memos[itemKey] || '').trim());
+        const visitDate = visits[itemKey] || '';
         const shortLoc = item.loc.replace('부산광역시 ', '').replace(item.sigungu + ' ', '');
         const areaStr = item.area ? item.area.toLocaleString() + '㎡' : '';
         const metaStr = [item.purps, areaStr].filter(Boolean).join(' · ');
         return `
-        <div class="m-card ${item.isNew ? 'row-new' : ''}" onclick="openDetail(${idx})">
+        <div class="m-card ${item.isNew ? 'row-new' : ''} ${visitDate ? 'row-visited' : ''}" onclick="openDetail(${idx})">
           <div class="m-card-top">
             <div class="m-card-left">
               ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
@@ -1577,45 +1642,58 @@
           <div class="m-card-loc">${shortLoc}</div>
           <div class="m-card-bottom">
             <span class="m-card-meta">${metaStr}</span>
-            <a href="${fallbackUrl}"
-               onclick="event.stopPropagation(); openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
-               target="_blank" rel="noopener noreferrer"
-               class="naver-btn">
-              <svg viewBox="0 0 24 24" fill="none">
-                <rect width="24" height="24" rx="4" fill="#03C75A"/>
-                <path d="M14.5 16.5L9.5 9.5V16.5H6.5V7.5H9.5L14.5 14.5V7.5H17.5V16.5H14.5Z" fill="white"/>
-              </svg>
-              <span>길찾기</span>
-            </a>
-          </div>
-        </div>
-      `}).join('');
-      tbody.innerHTML = filtered.map((item, idx) => {
-        const dname = encodeURIComponent(item.loc);
-        const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
-        const hasMemo = Boolean((memos[getItemKey(item)] || '').trim());
-        return `
-        <tr class="${item.isNew ? 'row-new' : ''}" onclick="openDetail(${idx})">
-          <td class="col-badges">
-            ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
-            <span class="badge ${item.type === '허가' ? 'badge-pms' : 'badge-stc'}">${item.type}</span>
-            ${item.isLarge ? '<span class="badge badge-large">대형</span>' : ''}
-            ${hasMemo ? '<span class="badge badge-memo">📝</span>' : ''}
-          </td>
-          <td class="col-nowrap"><strong>${item.sigungu}</strong></td>
-          <td>
-            <div class="loc-wrapper">
-              <span class="loc-link">${item.loc.replace('부산광역시 ', '')}</span>
-              <a href="${fallbackUrl}" 
+            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+              <button type="button" class="visit-btn ${visitDate ? 'checked' : ''}" onclick="toggleVisitQuick(event, '${itemKey.replace(/'/g, "\\'")}')">
+                ${visitDate ? '✅ ' + visitDate.slice(5) : '☐ 방문'}
+              </button>
+              <a href="${fallbackUrl}"
                  onclick="event.stopPropagation(); openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
-                 target="_blank" rel="noopener noreferrer" 
-                 class="naver-btn" title="네이버 지도 길찾기 (도착지 자동 입력)">
+                 target="_blank" rel="noopener noreferrer"
+                 class="naver-btn">
                 <svg viewBox="0 0 24 24" fill="none">
                   <rect width="24" height="24" rx="4" fill="#03C75A"/>
                   <path d="M14.5 16.5L9.5 9.5V16.5H6.5V7.5H9.5L14.5 14.5V7.5H17.5V16.5H14.5Z" fill="white"/>
                 </svg>
                 <span>길찾기</span>
               </a>
+            </div>
+          </div>
+        </div>
+      `}).join('');
+      tbody.innerHTML = filtered.map((item, idx) => {
+        const dname = encodeURIComponent(item.loc);
+        const fallbackUrl = "https://m.map.naver.com/route.naver?menu=route&ename=" + dname + "&ex=" + item.lng + "&ey=" + item.lat + "&pathType=0&showMap=true";
+        const itemKey = getItemKey(item);
+        const hasMemo = Boolean((memos[itemKey] || '').trim());
+        const visitDate = visits[itemKey] || '';
+        return `
+        <tr class="${item.isNew ? 'row-new' : ''} ${visitDate ? 'row-visited' : ''}" onclick="openDetail(${idx})">
+          <td class="col-badges">
+            ${item.isNew ? '<span class="badge badge-new">신규</span>' : ''}
+            <span class="badge ${item.type === '허가' ? 'badge-pms' : 'badge-stc'}">${item.type}</span>
+            ${item.isLarge ? '<span class="badge badge-large">대형</span>' : ''}
+            ${visitDate ? '<span class="badge badge-visited">✅ ' + visitDate.slice(5) + '</span>' : ''}
+            ${hasMemo ? '<span class="badge badge-memo">📝</span>' : ''}
+          </td>
+          <td class="col-nowrap"><strong>${item.sigungu}</strong></td>
+          <td>
+            <div class="loc-wrapper">
+              <span class="loc-link">${item.loc.replace('부산광역시 ', '')}</span>
+              <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                <button type="button" class="visit-btn ${visitDate ? 'checked' : ''}" onclick="toggleVisitQuick(event, '${itemKey.replace(/'/g, "\\'")}')">
+                  ${visitDate ? '✅ ' + visitDate.slice(5) : '☐ 방문'}
+                </button>
+                <a href="${fallbackUrl}" 
+                   onclick="event.stopPropagation(); openNaverRoute(event, '${item.loc}', ${item.lat}, ${item.lng})"
+                   target="_blank" rel="noopener noreferrer" 
+                   class="naver-btn" title="네이버 지도 길찾기 (도착지 자동 입력)">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <rect width="24" height="24" rx="4" fill="#03C75A"/>
+                    <path d="M14.5 16.5L9.5 9.5V16.5H6.5V7.5H9.5L14.5 14.5V7.5H17.5V16.5H14.5Z" fill="white"/>
+                  </svg>
+                  <span>길찾기</span>
+                </a>
+              </div>
             </div>
           </td>
           <td class="date-cell"><strong>${item.date}</strong></td>
@@ -1685,6 +1763,11 @@
       `;
       currentModalKey = getItemKey(item);
       const memos = loadMemos();
+      const visits = loadVisits();
+      const vDate = visits[currentModalKey] || '';
+      document.getElementById('modal-visit-check').checked = Boolean(vDate);
+      document.getElementById('modal-visit-date').value = vDate || getTodayStr();
+      document.getElementById('modal-visit-date').disabled = !Boolean(vDate);
       document.getElementById('modal-memo-input').value = memos[currentModalKey] || '';
       document.getElementById('modal-memo-status').textContent = '';
       document.getElementById('detail-modal').classList.add('open');
@@ -1706,6 +1789,35 @@
           modalMap.invalidateSize();
         }, 80);
       }
+    }
+
+    function onModalVisitToggle() {
+      if (!currentModalKey) return;
+      const checked = document.getElementById('modal-visit-check').checked;
+      const dateInput = document.getElementById('modal-visit-date');
+      const visits = loadVisits();
+      if (checked) {
+        const d = dateInput.value || getTodayStr();
+        dateInput.value = d;
+        dateInput.disabled = false;
+        visits[currentModalKey] = d;
+      } else {
+        dateInput.disabled = true;
+        delete visits[currentModalKey];
+      }
+      saveVisitsMap(visits);
+      renderTable();
+    }
+
+    function onModalVisitDateChange() {
+      if (!currentModalKey) return;
+      const checked = document.getElementById('modal-visit-check').checked;
+      if (!checked) return;
+      const d = document.getElementById('modal-visit-date').value || getTodayStr();
+      const visits = loadVisits();
+      visits[currentModalKey] = d;
+      saveVisitsMap(visits);
+      renderTable();
     }
 
     function saveMemo() {

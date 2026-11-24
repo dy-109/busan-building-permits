@@ -221,19 +221,19 @@
         <p class="header-sub" style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">세움터 실시간 연동 · 신규 등록 최상단 우선 정렬 · 네이버 지도 길찾기 연동</p>
       </div>
       <div class="last-updated">
-        기준: 2026.11.01 ~ 11.23 (매일 아침 08:30 갱신)
+        기준: 2026.11.01 ~ 11.24 (매일 아침 08:30 갱신)
       </div>
     </header>
 
     <!-- New Items Banner -->
     <div class="new-banner" id="new-items-banner">
       <div>🔥 <strong>최신 신규 등록 현장 1건</strong>이 최상단에 우선 배치되었습니다.</div>
-      <div class="new-banner-chip">사상구 학장동(공장 1,467.2㎡) 1건 신규 반영</div>
+      <div class="new-banner-chip">기장군 일광읍 문동리(소매점 262㎡) 1건 신규 반영</div>
     </div>
 
     <!-- Mobile KPI Toggle -->
     <button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpi()">
-      <span>📊 11월 현황 요약 (전체 53 · 허가 36 · 착공 17)</span>
+      <span>📊 11월 현황 요약 (전체 54 · 허가 36 · 착공 18)</span>
       <span id="kpi-toggle-arrow">▾</span>
     </button>
 
@@ -251,7 +251,7 @@
       </div>
       <div class="kpi-card stc">
         <div class="kpi-title">11월 누적 착공</div>
-        <div class="kpi-value" id="kpi-stc-count">17건</div>
+        <div class="kpi-value" id="kpi-stc-count">18건</div>
         <div class="kpi-desc">대형 3건 · 중동·부전동·재송동 등</div>
       </div>
       <div class="kpi-card highlight">
@@ -264,12 +264,12 @@
     <!-- Filter & Search Controls -->
     <div class="controls-card">
       <div class="filter-tabs" id="tab-group">
-        <button class="tab-btn active" data-filter="all">전체 (53건)</button>
+        <button class="tab-btn active" data-filter="all">전체 (54건)</button>
         <button class="tab-btn tab-new" data-filter="new" style="color: #ea580c;">🔥 신규 등록 (1건)</button>
         <button class="tab-btn" data-filter="pms">건축허가 (36건)</button>
-        <button class="tab-btn" data-filter="stc">착공 (17건)</button>
+        <button class="tab-btn" data-filter="stc">착공 (18건)</button>
         <button class="tab-btn" data-filter="large">대형 1,000㎡ 이상 (16건)</button>
-        <button class="tab-btn" data-filter="small">소규모 1,000㎡ 미만 (37건)</button>
+        <button class="tab-btn" data-filter="small">소규모 1,000㎡ 미만 (38건)</button>
       </div>
       <div class="search-group">
         <select class="select-input" id="sigungu-select">
@@ -369,6 +369,25 @@
     const DATA = [
       {
             "type": "착공",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 일광읍 문동리 산 4-2",
+            "bldNm": "일광읍 문동리 신축착공(소매점)",
+            "pmsno": "2025-건축과-신축허가-56",
+            "date": "2026-11-24",
+            "purps": "제1종근린생활시설(소매점)",
+            "area": 262.0,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.3111810416376,
+            "lng": 129.259322376776,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
+            "type": "착공",
             "sigungu": "사상구",
             "loc": "부산광역시 사상구 학장동 278-14",
             "bldNm": "학장동 278-14 공장 신축(착공예정)",
@@ -381,7 +400,7 @@
             "isLarge": true,
             "lat": 35.1451257374379,
             "lng": 128.991045871006,
-            "isNew": true,
+            "isNew": false,
             "builder": "",
             "designer": "주식회사에이원건축사사무소",
             "supervisor": ""

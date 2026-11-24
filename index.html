@@ -275,13 +275,13 @@
     <div class="controls-card">
       <div class="filter-tabs" id="tab-group">
         <button class="tab-btn active" data-filter="all">전체 (54건)</button>
-        <button class="tab-btn tab-new" data-filter="new" style="color: #ea580c;">🔥 신규 등록 (1건)</button>
-        <button class="tab-btn" data-filter="pms">건축허가 (36건)</button>
-        <button class="tab-btn" data-filter="stc">착공 (18건)</button>
-        <button class="tab-btn" data-filter="large">대형 1,000㎡ 이상 (16건)</button>
-        <button class="tab-btn" data-filter="small">소규모 1,000㎡ 미만 (38건)</button>
-        <button class="tab-btn" data-filter="visited" style="color: #15803d;">✅ 방문완료 (<span id="visited-tab-count">0</span>건)</button>
+        <button class="tab-btn tab-new" data-filter="new" style="color: #ea580c;">🔥 신규 (1건)</button>
+        <button class="tab-btn" data-filter="visited" style="color: #15803d;">✅ 방문 (<span id="visited-tab-count">0</span>건)</button>
         <button class="tab-btn" data-filter="unvisited">미방문 (<span id="unvisited-tab-count">0</span>건)</button>
+        <button class="tab-btn" data-filter="pms">허가 (36건)</button>
+        <button class="tab-btn" data-filter="stc">착공 (18건)</button>
+        <button class="tab-btn" data-filter="large">대형 1,000㎡+ (16건)</button>
+        <button class="tab-btn" data-filter="small">소규모 (38건)</button>
       </div>
       <div class="search-group">
         <select class="select-input" id="sigungu-select">
@@ -1598,8 +1598,13 @@
 
       renderSigunguBar();
 
-      // 2. 정렬: 신규(isNew) 건이 무조건 맨 위에 오도록 최우선 정렬!
+      // 2. 정렬: 방문완료 탭이면 방문일 최신순, 그 외엔 신규(isNew) 우선 후 허가·착공일 최신순
       filtered.sort((a, b) => {
+        if (currentFilter === 'visited') {
+          const va = visits[getItemKey(a)] || '';
+          const vb = visits[getItemKey(b)] || '';
+          if (va !== vb) return vb.localeCompare(va);
+        }
         if (a.isNew && !b.isNew) return -1;
         if (!a.isNew && b.isNew) return 1;
         return b.date.localeCompare(a.date);

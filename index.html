@@ -236,19 +236,19 @@
         <p class="header-sub" style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">세움터 실시간 연동 · 신규 등록 최상단 우선 정렬 · 네이버 지도 길찾기 연동</p>
       </div>
       <div class="last-updated">
-        기준: 2026.11.01 ~ 11.24 (매일 아침 08:30 갱신)
+        기준: 2026.11.01 ~ 11.25 (매일 아침 08:30 갱신)
       </div>
     </header>
 
     <!-- New Items Banner -->
     <div class="new-banner" id="new-items-banner">
-      <div>🔥 <strong>최신 신규 등록 현장 1건</strong>이 최상단에 우선 배치되었습니다.</div>
+      <div>🔥 <strong>최신 신규 등록 현장 5건</strong>이 최상단에 우선 배치되었습니다.</div>
       <div class="new-banner-chip">기장군 일광읍 문동리(소매점 262㎡) 1건 신규 반영</div>
     </div>
 
     <!-- Mobile KPI Toggle -->
     <button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpi()">
-      <span>📊 11월 현황 요약 (전체 54 · 허가 36 · 착공 18)</span>
+      <span>📊 11월 현황 요약 (전체 58 · 허가 38 · 착공 20)</span>
       <span id="kpi-toggle-arrow">▾</span>
     </button>
 
@@ -256,17 +256,17 @@
     <div class="kpi-grid" id="kpi-grid">
       <div class="kpi-card new">
         <div class="kpi-title">신규 등록 건수 (NEW)</div>
-        <div class="kpi-value" style="color: #ea580c;" id="kpi-new-count">1건</div>
+        <div class="kpi-value" style="color: #ea580c;" id="kpi-new-count">5건</div>
         <div class="kpi-desc">직전 점검 이후 신규 전산 등재 건</div>
       </div>
       <div class="kpi-card pms">
         <div class="kpi-title">11월 누적 건축허가</div>
-        <div class="kpi-value" id="kpi-pms-count">36건</div>
-        <div class="kpi-desc">대형 13건 · 소규모 23건</div>
+        <div class="kpi-value" id="kpi-pms-count">38건</div>
+        <div class="kpi-desc">대형 13건 · 소규모 25건</div>
       </div>
       <div class="kpi-card stc">
         <div class="kpi-title">11월 누적 착공</div>
-        <div class="kpi-value" id="kpi-stc-count">18건</div>
+        <div class="kpi-value" id="kpi-stc-count">20건</div>
         <div class="kpi-desc">대형 3건 · 중동·부전동·재송동 등</div>
       </div>
       <div class="kpi-card highlight">
@@ -279,14 +279,14 @@
     <!-- Filter & Search Controls -->
     <div class="controls-card">
       <div class="filter-tabs" id="tab-group">
-        <button class="tab-btn active" data-filter="all">전체 (54건)</button>
-        <button class="tab-btn tab-new" data-filter="new" style="color: #ea580c;">🔥 신규 (1건)</button>
+        <button class="tab-btn active" data-filter="all">전체 (58건)</button>
+        <button class="tab-btn tab-new" data-filter="new" style="color: #ea580c;">🔥 신규 (5건)</button>
         <button class="tab-btn" data-filter="visited" style="color: #15803d;">✅ 방문 (<span id="visited-tab-count">0</span>건)</button>
         <button class="tab-btn" data-filter="unvisited">미방문 (<span id="unvisited-tab-count">0</span>건)</button>
-        <button class="tab-btn" data-filter="pms">허가 (36건)</button>
-        <button class="tab-btn" data-filter="stc">착공 (18건)</button>
+        <button class="tab-btn" data-filter="pms">허가 (38건)</button>
+        <button class="tab-btn" data-filter="stc">착공 (20건)</button>
         <button class="tab-btn" data-filter="large">대형 1,000㎡+ (16건)</button>
-        <button class="tab-btn" data-filter="small">소규모 (38건)</button>
+        <button class="tab-btn" data-filter="small">소규모 (42건)</button>
       </div>
       <div class="search-group">
         <select class="select-input" id="sigungu-select">
@@ -395,6 +395,101 @@
   <script>
     const DATA = [
       {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 대저1동 436-29",
+            "bldNm": "대저1동 신축허가(제2종근생·제조업소)",
+            "pmsno": "2026-건축과-신축허가-79",
+            "date": "2026-11-24",
+            "purps": "제2종근린생활시설(제조업소)",
+            "area": 315.9,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.2159141223468,
+            "lng": 128.979919634614,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 명지동 3261-4",
+            "bldNm": "명지동 신축허가(단독·다가구·제2종근생)",
+            "pmsno": "2026-건축과-신축허가-80",
+            "date": "2026-11-24",
+            "purps": "단독주택(제2종근린생활시설·다가구주택)",
+            "area": 298.66,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.0861581459473,
+            "lng": 128.911337794633,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
+            "type": "허가",
+            "sigungu": "동래구",
+            "loc": "부산광역시 동래구 온천동 1432-14",
+            "bldNm": "온천동 신축허가(단독주택)",
+            "pmsno": "2026-건축과-신축허가-17",
+            "date": "2026-11-24",
+            "purps": "단독주택",
+            "area": 278.38,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.2070927863098,
+            "lng": 129.074587473015,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
+            "type": "착공",
+            "sigungu": "중구",
+            "loc": "부산광역시 중구 동광동5가 16-32",
+            "bldNm": "동광동5가 근린생활시설 착공(11-09 신고)",
+            "pmsno": "2026-재생건축과-신축신고-1",
+            "date": "2026-11-23",
+            "purps": "제1종근린생활시설",
+            "area": 58.14,
+            "floors": "지상2층",
+            "strct": "일반철골구조",
+            "isLarge": false,
+            "lat": 35.1077851974251,
+            "lng": 129.033345836311,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
+            "type": "착공",
+            "sigungu": "북구",
+            "loc": "부산광역시 북구 만덕동 49-17",
+            "bldNm": "만덕동 신축착공(소매점)",
+            "pmsno": "2026-건축과-신축신고-5",
+            "date": "2026-11-23",
+            "purps": "제1종근린생활시설(소매점)",
+            "area": 46.72,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.2140734111336,
+            "lng": 129.04558593002,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
             "type": "착공",
             "sigungu": "기장군",
             "loc": "부산광역시 기장군 일광읍 문동리 산 4-2",
@@ -408,7 +503,7 @@
             "isLarge": false,
             "lat": 35.3111810416376,
             "lng": 129.259322376776,
-            "isNew": true,
+            "isNew": false,
             "builder": "",
             "designer": "",
             "supervisor": ""
@@ -978,25 +1073,6 @@
             "isLarge": false,
             "lat": 35.1986406543978,
             "lng": 128.893135456952,
-            "isNew": false,
-            "builder": "",
-            "designer": "",
-            "supervisor": ""
-      },
-      {
-            "type": "허가",
-            "sigungu": "중구",
-            "loc": "부산광역시 중구 동광동5가 16-32",
-            "bldNm": "근린생활시설",
-            "pmsno": "2026-재생건축과-신축신고-1",
-            "date": "2026-11-09",
-            "purps": "제1종근린생활시설",
-            "area": 58.14,
-            "floors": "지상2층",
-            "strct": "일반철골구조",
-            "isLarge": false,
-            "lat": 35.1077851974251,
-            "lng": 129.033345836311,
             "isNew": false,
             "builder": "",
             "designer": "",

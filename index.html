@@ -236,19 +236,19 @@
         <p class="header-sub" style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">세움터 실시간 연동 · 신규 등록 최상단 우선 정렬 · 네이버 지도 길찾기 연동</p>
       </div>
       <div class="last-updated">
-        기준: 2026.11.01 ~ 11.26 (매일 아침 08:30 갱신)
+        기준: 2026.11.01 ~ 11.27 (매일 아침 08:30 갱신)
       </div>
     </header>
 
     <!-- New Items Banner -->
     <div class="new-banner" id="new-items-banner">
-      <div>🔥 <strong>최신 신규 등록 현장 2건</strong>이 최상단에 우선 배치되었습니다.</div>
+      <div>🔥 <strong>최신 신규 등록 현장 4건</strong>이 최상단에 우선 배치되었습니다.</div>
       <div class="new-banner-chip">기장군 일광읍 문동리(소매점 262㎡) 1건 신규 반영</div>
     </div>
 
     <!-- Mobile KPI Toggle -->
     <button class="kpi-toggle-btn" id="kpi-toggle-btn" onclick="toggleKpi()">
-      <span>📊 11월 현황 요약 (전체 60 · 허가 40 · 착공 20)</span>
+      <span>📊 11월 현황 요약 (전체 63 · 허가 42 · 착공 21)</span>
       <span id="kpi-toggle-arrow">▾</span>
     </button>
 
@@ -256,22 +256,22 @@
     <div class="kpi-grid" id="kpi-grid">
       <div class="kpi-card new">
         <div class="kpi-title">신규 등록 건수 (NEW)</div>
-        <div class="kpi-value" style="color: #ea580c;" id="kpi-new-count">2건</div>
+        <div class="kpi-value" style="color: #ea580c;" id="kpi-new-count">4건</div>
         <div class="kpi-desc">직전 점검 이후 신규 전산 등재 건</div>
       </div>
       <div class="kpi-card pms">
         <div class="kpi-title">11월 누적 건축허가</div>
-        <div class="kpi-value" id="kpi-pms-count">40건</div>
-        <div class="kpi-desc">대형 14건 · 소규모 26건</div>
+        <div class="kpi-value" id="kpi-pms-count">42건</div>
+        <div class="kpi-desc">대형 15건 · 소규모 27건</div>
       </div>
       <div class="kpi-card stc">
         <div class="kpi-title">11월 누적 착공</div>
-        <div class="kpi-value" id="kpi-stc-count">20건</div>
+        <div class="kpi-value" id="kpi-stc-count">21건</div>
         <div class="kpi-desc">대형 3건 · 중동·부전동·재송동 등</div>
       </div>
       <div class="kpi-card highlight">
         <div class="kpi-title">대형 프로젝트 (1,000㎡ 이상)</div>
-        <div class="kpi-value" id="kpi-large-count">17건</div>
+        <div class="kpi-value" id="kpi-large-count">18건</div>
         <div class="kpi-desc">MS데이터센터(6.9만㎡), 중동(1,938㎡) 등</div>
       </div>
     </div>
@@ -279,14 +279,14 @@
     <!-- Filter & Search Controls -->
     <div class="controls-card">
       <div class="filter-tabs" id="tab-group">
-        <button class="tab-btn active" data-filter="all">전체 (60건)</button>
-        <button class="tab-btn tab-new" data-filter="new" style="color: #ea580c;">🔥 신규 (2건)</button>
+        <button class="tab-btn active" data-filter="all">전체 (63건)</button>
+        <button class="tab-btn tab-new" data-filter="new" style="color: #ea580c;">🔥 신규 (4건)</button>
         <button class="tab-btn" data-filter="visited" style="color: #15803d;">✅ 방문 (<span id="visited-tab-count">0</span>건)</button>
         <button class="tab-btn" data-filter="unvisited">미방문 (<span id="unvisited-tab-count">0</span>건)</button>
-        <button class="tab-btn" data-filter="pms">허가 (40건)</button>
-        <button class="tab-btn" data-filter="stc">착공 (20건)</button>
-        <button class="tab-btn" data-filter="large">대형 1,000㎡+ (17건)</button>
-        <button class="tab-btn" data-filter="small">소규모 (43건)</button>
+        <button class="tab-btn" data-filter="pms">허가 (42건)</button>
+        <button class="tab-btn" data-filter="stc">착공 (21건)</button>
+        <button class="tab-btn" data-filter="large">대형 1,000㎡+ (18건)</button>
+        <button class="tab-btn" data-filter="small">소규모 (45건)</button>
       </div>
       <div class="search-group">
         <select class="select-input" id="sigungu-select">
@@ -396,6 +396,82 @@
     const DATA = [
       {
             "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 화전동 556-7",
+            "bldNm": "화전동 신축허가(오피스텔)",
+            "pmsno": "2026-건축과-신축허가-14",
+            "date": "2026-11-26",
+            "purps": "업무시설(오피스텔)",
+            "area": 4989.01,
+            "floors": "",
+            "strct": "",
+            "isLarge": true,
+            "lat": 35.1116386784071,
+            "lng": 128.881392463033,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
+            "type": "허가",
+            "sigungu": "기장군",
+            "loc": "부산광역시 기장군 장안읍 길천리 245-9",
+            "bldNm": "장안읍 길천리 신축허가(사무소)",
+            "pmsno": "2026-건축과-신축허가-56",
+            "date": "2026-11-26",
+            "purps": "제2종근린생활시설(사무소)",
+            "area": 195.27,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.3279186072995,
+            "lng": 129.285792671882,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
+            "type": "허가",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 명지동 3713-1",
+            "bldNm": "명지동 신축허가(단독주택)",
+            "pmsno": "2026-건축과-신축허가-81",
+            "date": "2026-11-26",
+            "purps": "단독주택",
+            "area": 177.4,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.1293744082554,
+            "lng": 128.915125428804,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
+            "type": "착공",
+            "sigungu": "강서구",
+            "loc": "부산광역시 강서구 명지동 3693-1",
+            "bldNm": "명지동 다가구·근생 착공(11-18 허가)",
+            "pmsno": "2026-건축과-신축허가-78",
+            "date": "2026-11-20",
+            "purps": "단독주택(다가구주택)·제2종근린생활시설(일반음식점)",
+            "area": 384.67,
+            "floors": "",
+            "strct": "",
+            "isLarge": false,
+            "lat": 35.1322803279821,
+            "lng": 128.913469897487,
+            "isNew": true,
+            "builder": "",
+            "designer": "",
+            "supervisor": ""
+      },
+      {
+            "type": "허가",
             "sigungu": "사하구",
             "loc": "부산광역시 사하구 괴정동 936-1",
             "bldNm": "괴정동 신축허가(소매점·의원)",
@@ -408,7 +484,7 @@
             "isLarge": true,
             "lat": 35.1000967160688,
             "lng": 128.992233007876,
-            "isNew": true,
+            "isNew": false,
             "builder": "",
             "designer": "",
             "supervisor": ""
@@ -427,7 +503,7 @@
             "isLarge": false,
             "lat": 35.1536017846596,
             "lng": 129.063773422646,
-            "isNew": true,
+            "isNew": false,
             "builder": "",
             "designer": "",
             "supervisor": ""
@@ -696,25 +772,6 @@
             "isNew": false,
             "builder": "",
             "designer": "세화 건축사사무소",
-            "supervisor": ""
-      },
-      {
-            "type": "허가",
-            "sigungu": "강서구",
-            "loc": "부산광역시 강서구 명지동 3693-1",
-            "bldNm": "명지동 신축허가(단독·다가구·일반음식점)",
-            "pmsno": "2026-건축과-신축허가-78",
-            "date": "2026-11-18",
-            "purps": "단독주택(다가구주택)·제2종근린생활시설(일반음식점)",
-            "area": 384.67,
-            "floors": "",
-            "strct": "",
-            "isLarge": false,
-            "lat": 35.1322803279821,
-            "lng": 128.913469897487,
-            "isNew": false,
-            "builder": "",
-            "designer": "",
             "supervisor": ""
       },
       {
